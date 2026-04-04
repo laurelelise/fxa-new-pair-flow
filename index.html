@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>One QR Pairing Flow Prototype</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: #f5f5f5;
+    color: #333;
+    padding: 24px;
+    min-height: 100vh;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 24px;
+    letter-spacing: 0.02em;
+  }
+
+  .panels {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    align-items: flex-start;
+    margin-bottom: 32px;
+  }
+
+  .panel {
+    width: 340px;
+    min-height: 420px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background: #fff;
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+
+  .panel-label {
+    position: absolute;
+    top: -10px;
+    left: 16px;
+    background: #fff;
+    padding: 0 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .mobile-app-context {
+    font-size: 10px;
+    font-weight: 600;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 4px 10px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    min-height: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .mobile-app-context:empty {
+    display: none;
+  }
+
+  .state-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    width: 100%;
+    text-align: center;
+  }
+
+  .state-content.animate-in {
+    animation: fadeIn 0.2s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .state-content h2 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+  }
+
+  .state-content p {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 16px;
+    line-height: 1.4;
+  }
+
+  .qr-box {
+    width: 160px;
+    height: 160px;
+    border: 2px dashed #bbb;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    background: #fafafa;
+  }
+
+  .qr-box svg {
+    width: 120px;
+    height: 120px;
+    opacity: 0.35;
+  }
+
+  button {
+    font-family: inherit;
+    font-size: 13px;
+    padding: 8px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid #bbb;
+    background: #fff;
+    color: #333;
+    margin: 4px;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  button:hover {
+    background: #f0f0f0;
+    border-color: #999;
+  }
+
+  button.primary {
+    background: #444;
+    color: #fff;
+    border-color: #444;
+  }
+
+  button.primary:hover {
+    background: #333;
+  }
+
+  .link-btn {
+    background: none;
+    border: none;
+    color: #888;
+    text-decoration: underline;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 4px;
+  }
+
+  .link-btn:hover {
+    color: #555;
+  }
+
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #ddd;
+    border-top-color: #888;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 16px;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .check {
+    width: 40px;
+    height: 40px;
+    border: 2px solid #888;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    font-size: 20px;
+    color: #888;
+  }
+
+  .warn {
+    width: 40px;
+    height: 40px;
+    border: 2px solid #aaa;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    font-size: 18px;
+    color: #aaa;
+  }
+
+  .debug-bar {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 16px;
+    border: 1px dashed #ddd;
+    border-radius: 6px;
+    background: #fafafa;
+    max-width: 704px;
+    margin: 0 auto;
+    align-items: center;
+  }
+
+  .debug-bar span {
+    font-size: 11px;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-right: 8px;
+    align-self: center;
+  }
+
+  .debug-bar button {
+    font-size: 11px;
+    padding: 5px 12px;
+    border-style: dashed;
+    color: #888;
+  }
+
+  .debug-bar select {
+    font-family: inherit;
+    font-size: 11px;
+    padding: 5px 8px;
+    border: 1px dashed #bbb;
+    border-radius: 4px;
+    background: #fff;
+    color: #888;
+    cursor: pointer;
+  }
+
+  .debug-bar label {
+    font-size: 11px;
+    color: #aaa;
+    letter-spacing: 0.04em;
+  }
+
+  .debug-sep {
+    width: 1px;
+    height: 20px;
+    background: #ddd;
+    margin: 0 4px;
+  }
+
+  .context-hint {
+    font-size: 11px;
+    color: #aaa;
+    margin-bottom: 4px;
+    font-style: italic;
+  }
+
+  .camera-viewfinder {
+    width: 100%;
+    flex: 1;
+    background: #1a1a1a;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    min-height: 280px;
+  }
+
+  .camera-viewfinder .scan-frame {
+    width: 140px;
+    height: 140px;
+    position: relative;
+  }
+
+  .camera-viewfinder .scan-frame .corner {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-color: #fff;
+    border-style: solid;
+    border-width: 0;
+  }
+
+  .corner.tl { top: 0; left: 0; border-top-width: 3px; border-left-width: 3px; border-top-left-radius: 4px; }
+  .corner.tr { top: 0; right: 0; border-top-width: 3px; border-right-width: 3px; border-top-right-radius: 4px; }
+  .corner.bl { bottom: 0; left: 0; border-bottom-width: 3px; border-left-width: 3px; border-bottom-left-radius: 4px; }
+  .corner.br { bottom: 0; right: 0; border-bottom-width: 3px; border-right-width: 3px; border-bottom-right-radius: 4px; }
+
+  .camera-viewfinder .scan-line {
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+    background: rgba(255,255,255,0.4);
+    animation: scanMove 2s ease-in-out infinite;
+  }
+
+  @keyframes scanMove {
+    0%, 100% { top: 30%; }
+    50% { top: 65%; }
+  }
+
+  .camera-viewfinder .camera-label {
+    color: rgba(255,255,255,0.5);
+    font-size: 11px;
+    margin-top: 16px;
+  }
+
+  .camera-bottom-bar {
+    width: 100%;
+    background: #111;
+    padding: 12px;
+    display: flex;
+    justify-content: center;
+    border-radius: 0 0 4px 4px;
+  }
+
+  .camera-bottom-bar button.primary {
+    font-size: 12px;
+    padding: 8px 24px;
+    border-radius: 20px;
+    background: #555;
+    border-color: #555;
+  }
+
+  .camera-bottom-bar button.primary:hover {
+    background: #666;
+  }
+
+
+  .stepper-wrapper {
+    max-width: 704px;
+    margin: 0 auto 24px;
+  }
+
+  .stepper {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    position: relative;
+    padding: 0 8px;
+  }
+
+  .stepper-line {
+    position: absolute;
+    top: 12px;
+    left: 32px;
+    right: 32px;
+    height: 2px;
+    background: #ddd;
+    z-index: 0;
+  }
+
+  .stepper-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 1;
+    min-width: 56px;
+    cursor: pointer;
+  }
+
+  .stepper-step:hover .stepper-circle {
+    box-shadow: 0 0 0 3px rgba(0,0,0,0.08);
+  }
+
+  .stepper-circle {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #bbb;
+    margin-bottom: 6px;
+    transition: all 0.2s ease;
+  }
+
+  .stepper-step.completed .stepper-circle {
+    background: #999;
+    border-color: #999;
+    color: #fff;
+    font-size: 12px;
+  }
+
+  .stepper-step.current .stepper-circle {
+    background: #444;
+    border-color: #444;
+    color: #fff;
+  }
+
+  .stepper-step.error .stepper-circle {
+    background: #fff;
+    border-color: #999;
+    color: #999;
+  }
+
+  .stepper-label {
+    font-size: 10px;
+    color: #bbb;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 500;
+  }
+
+  .stepper-step.completed .stepper-label { color: #999; }
+  .stepper-step.current .stepper-label { color: #444; font-weight: 600; }
+  .stepper-step.error .stepper-label { color: #999; }
+
+  .stepper-status {
+    text-align: center;
+    font-size: 11px;
+    color: #999;
+    margin-top: 10px;
+    letter-spacing: 0.02em;
+  }
+
+  .bts-panel {
+    max-width: 704px;
+    margin: 12px auto 0;
+    border: 1px dashed #ddd;
+    border-radius: 6px;
+    background: #fafafa;
+    padding: 12px 16px;
+  }
+
+  .bts-panel .bts-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+  }
+
+  .bts-log {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .bts-log li {
+    font-size: 11px;
+    font-family: monospace;
+    color: #aaa;
+    padding: 2px 0;
+    line-height: 1.5;
+  }
+
+  .bts-log li:last-child {
+    color: #555;
+    font-weight: 600;
+  }
+
+  .bts-log li::before {
+    content: '\25B8 ';
+    color: #ccc;
+  }
+
+  .bts-log li:last-child::before {
+    color: #888;
+  }
+</style>
+</head>
+<body>
+
+<h1>One QR Pairing Flow Prototype</h1>
+
+<div class="stepper-wrapper">
+  <div class="stepper" id="stepper"></div>
+  <div class="stepper-status" id="stepper-status"></div>
+</div>
+
+<div class="panels">
+  <div class="panel" id="desktop-panel">
+    <div class="panel-label">Desktop</div>
+    <div id="desktop-content"></div>
+  </div>
+  <div class="panel" id="mobile-panel">
+    <div class="panel-label">Mobile</div>
+    <div class="mobile-app-context" id="mobile-app-context"></div>
+    <div id="mobile-content"></div>
+  </div>
+</div>
+
+<div class="debug-bar">
+  <span>Debug</span>
+  <label>Entrypoint
+    <select id="entrypoint-select" onchange="onEntrypointChange()">
+      <optgroup label="Core /pair entry paths">
+        <option value="direct">Direct navigation</option>
+        <option value="connect-another">Connect Another Device redirect</option>
+        <option value="post-signin">Post-sign-in broker</option>
+        <option value="signup-confirmed">Signup Confirmed Sync page</option>
+      </optgroup>
+      <optgroup label="Recognized Firefox sources">
+        <option value="fxa_discoverability_native">fxa_discoverability_native</option>
+        <option value="fxa_app_menu">fxa_app_menu</option>
+        <option value="preferences">preferences</option>
+        <option value="synced-tabs">synced-tabs</option>
+        <option value="tabs-sidebar">tabs-sidebar</option>
+        <option value="fx-view">fx-view</option>
+      </optgroup>
+    </select>
+  </label>
+  <div class="debug-sep"></div>
+  <label>Mobile app installed
+    <select id="app-installed-select">
+      <option value="yes">Yes</option>
+      <option value="no">No</option>
+    </select>
+  </label>
+  <div class="debug-sep"></div>
+  <button onclick="resetFlow()">Reset</button>
+  <button onclick="simulateExpired()">Simulate QR expired</button>
+  <button onclick="simulateResumeFail()">Simulate resume failure</button>
+</div>
+
+<div class="bts-panel">
+  <div class="bts-title">Behind the scenes</div>
+  <ul class="bts-log" id="bts-log"></ul>
+</div>
+
+<script>
+  let desktopState = 'qr-shown';
+  let mobileState = 'idle';
+  let waitingTimer = null;
+
+  // --- Behind the scenes log ---
+
+  const MAX_LOG = 5;
+  let sysLog = [];
+
+  function logSystem(...messages) {
+    messages.forEach(m => sysLog.push(m));
+    if (sysLog.length > MAX_LOG) sysLog = sysLog.slice(-MAX_LOG);
+    renderLog();
+  }
+
+  function clearLog() {
+    sysLog = [];
+    renderLog();
+  }
+
+  function renderLog() {
+    const el = document.getElementById('bts-log');
+    el.innerHTML = sysLog.map(m => `<li>${m}</li>`).join('');
+  }
+
+  const entrypointContextHint = {
+    'direct': '',
+    'connect-another': "You\u2019re signed in. Add another device.",
+    'post-signin': "You\u2019re signed in. Continue on your phone.",
+    'signup-confirmed': '',
+    'fxa_discoverability_native': 'Opened from Firefox toolbar',
+    'fxa_app_menu': 'Opened from Firefox menu',
+    'preferences': 'Opened from Sync settings',
+    'synced-tabs': 'Opened from Synced Tabs',
+    'tabs-sidebar': 'Opened from Tabs sidebar',
+    'fx-view': 'Opened from Firefox View',
+  };
+
+  function getEntrypoint() {
+    return document.getElementById('entrypoint-select').value;
+  }
+
+  function getDefaultDesktopState() {
+    return getEntrypoint() === 'signup-confirmed' ? 'signup-intro' : 'qr-shown';
+  }
+
+  function onEntrypointChange() {
+    clearTimers();
+    clearLog();
+    desktopState = getDefaultDesktopState();
+    mobileState = 'idle';
+    logSystem('Pairing session created', 'Waiting for phone to connect');
+    render();
+  }
+
+  function clearTimers() {
+    if (waitingTimer) { clearTimeout(waitingTimer); waitingTimer = null; }
+  }
+
+  function setState(desktop, mobile) {
+    if (desktop !== undefined) desktopState = desktop;
+    if (mobile !== undefined) mobileState = mobile;
+    render();
+  }
+
+  // --- Desktop renderers ---
+
+  const desktopRenderers = {
+    'signup-intro': () => `
+      <div class="state-content">
+        <h2>Add another device</h2>
+        <p>Connect your phone to start syncing</p>
+        <button class="primary" onclick="showQRFromIntro()">Show QR code</button>
+      </div>`,
+
+    'qr-shown': () => {
+      const hint = entrypointContextHint[getEntrypoint()] || '';
+      return `
+      <div class="state-content">
+        ${hint ? '<div class="context-hint">' + hint + '</div>' : ''}
+        <h2>Add another device</h2>
+        <div class="qr-box">
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="5" y="5" width="30" height="30" rx="2" stroke="#999" stroke-width="2"/>
+            <rect x="10" y="10" width="20" height="20" rx="1" fill="#bbb"/>
+            <rect x="65" y="5" width="30" height="30" rx="2" stroke="#999" stroke-width="2"/>
+            <rect x="70" y="10" width="20" height="20" rx="1" fill="#bbb"/>
+            <rect x="5" y="65" width="30" height="30" rx="2" stroke="#999" stroke-width="2"/>
+            <rect x="10" y="70" width="20" height="20" rx="1" fill="#bbb"/>
+            <rect x="42" y="5" width="8" height="8" fill="#ccc"/>
+            <rect x="42" y="18" width="8" height="8" fill="#ccc"/>
+            <rect x="55" y="42" width="8" height="8" fill="#ccc"/>
+            <rect x="42" y="42" width="8" height="8" fill="#ccc"/>
+            <rect x="68" y="42" width="8" height="8" fill="#ccc"/>
+            <rect x="42" y="55" width="8" height="8" fill="#ccc"/>
+            <rect x="55" y="55" width="8" height="8" fill="#ccc"/>
+            <rect x="68" y="55" width="8" height="8" fill="#ccc"/>
+            <rect x="82" y="42" width="8" height="8" fill="#ccc"/>
+            <rect x="5" y="42" width="8" height="8" fill="#ccc"/>
+            <rect x="18" y="42" width="8" height="8" fill="#ccc"/>
+            <rect x="5" y="55" width="8" height="8" fill="#ccc"/>
+            <rect x="68" y="68" width="8" height="8" fill="#ccc"/>
+            <rect x="82" y="68" width="8" height="8" fill="#ccc"/>
+            <rect x="68" y="82" width="8" height="8" fill="#ccc"/>
+            <rect x="82" y="82" width="8" height="8" fill="#ccc"/>
+            <rect x="55" y="82" width="8" height="8" fill="#ccc"/>
+          </svg>
+        </div>
+        <p>Scan with your phone camera</p>
+        <button class="link-btn">Sign in instead</button>
+      </div>`;
+    },
+
+    'waiting': () => `
+      <div class="state-content">
+        <h2>Connecting your phone...</h2>
+        <div class="spinner"></div>
+        <p>Check your phone</p>
+      </div>`,
+
+    'approval': () => `
+      <div class="state-content">
+        <h2>Approve this device?</h2>
+        <div class="warn">?</div>
+        <p>Finish setup for your phone</p>
+        <div>
+          <button class="primary" onclick="approveDevice()">Approve</button>
+          <button onclick="cancelApproval()">Cancel</button>
+        </div>
+      </div>`,
+
+    'success': () => `
+      <div class="state-content">
+        <h2>Your device is connected</h2>
+        <div class="check">&#10003;</div>
+        <button class="link-btn">Manage devices</button>
+      </div>`,
+
+    'expired': () => `
+      <div class="state-content">
+        <h2>This code expired</h2>
+        <div class="warn">!</div>
+        <button onclick="refreshQR()">Refresh QR</button>
+      </div>`,
+  };
+
+  // --- Mobile renderers ---
+
+  const mobileRenderers = {
+    'idle': () => `
+      <div class="state-content" style="padding:0; width:100%;">
+        <div class="camera-viewfinder">
+          <div class="scan-frame">
+            <div class="corner tl"></div>
+            <div class="corner tr"></div>
+            <div class="corner bl"></div>
+            <div class="corner br"></div>
+          </div>
+          <div class="scan-line"></div>
+          <div class="camera-label">Point at QR code</div>
+        </div>
+        <div class="camera-bottom-bar">
+          <button class="primary" onclick="simulateScan()">Simulate scan</button>
+        </div>
+      </div>`,
+
+    'app-store': () => `
+      <div class="state-content">
+        <h2>Get Firefox</h2>
+        <p>Install Firefox to continue</p>
+        <button class="primary" onclick="installFirefox()">Install Firefox</button>
+      </div>`,
+
+    'finish-on-desktop': () => `
+      <div class="state-content">
+        <h2>Finish setup on your computer</h2>
+        <div class="spinner"></div>
+        <p>Approve this device on your computer</p>
+      </div>`,
+
+    'success': () => `
+      <div class="state-content">
+        <h2>Your device is connected</h2>
+        <div class="check">&#10003;</div>
+        <p>Sync is on</p>
+      </div>`,
+
+    'resume-failed': () => `
+      <div class="state-content">
+        <h2>We couldn't continue the connection</h2>
+        <div class="warn">!</div>
+        <div>
+          <button onclick="tryAgain()">Try again</button>
+          <button onclick="scanAgain()">Scan again</button>
+        </div>
+      </div>`,
+
+    'session-expired': () => `
+      <div class="state-content">
+        <h2>This connection expired</h2>
+        <div class="warn">!</div>
+        <button onclick="scanAgain()">Scan again</button>
+      </div>`,
+  };
+
+  // --- Stepper ---
+
+  const stepperSteps = ['Start', 'QR', 'Open', 'Connect', 'Approve', 'Done'];
+
+  // Map combined state to step number (1-indexed)
+  function getCurrentStep() {
+    // Use the "furthest along" of desktop/mobile to determine step
+    const stateToStep = {
+      // Desktop states
+      'signup-intro': 1,
+      'qr-shown': 2,
+      'expired': 2,
+      'waiting': 4,
+      'approval': 5,
+      // Mobile states
+      'idle': 2,
+      'app-store': 3,
+      'resume-failed': 4,
+      'session-expired': 4,
+      'finish-on-desktop': 5,
+      'success': 6,
+    };
+    const d = stateToStep[desktopState] || 1;
+    const m = stateToStep[mobileState] || 1;
+    return Math.max(d, m);
+  }
+
+  function isErrorState() {
+    return ['expired'].includes(desktopState) ||
+           ['resume-failed', 'session-expired'].includes(mobileState);
+  }
+
+  // Canonical happy-path states for each step
+  function isAppInstalled() {
+    return document.getElementById('app-installed-select').value === 'yes';
+  }
+
+  const stepStates = {
+    1: () => ({ desktop: getDefaultDesktopState(), mobile: 'idle' }),
+    2: () => ({ desktop: 'qr-shown', mobile: 'idle' }),
+    3: () => ({ desktop: 'qr-shown', mobile: 'app-store' }),
+    4: () => ({ desktop: 'waiting', mobile: 'finish-on-desktop' }),
+    5: () => ({ desktop: 'approval', mobile: 'finish-on-desktop' }),
+    6: () => ({ desktop: 'success', mobile: 'success' }),
+  };
+
+  function goToStep(num) {
+    clearTimers();
+    clearLog();
+    const s = stepStates[num]();
+    desktopState = s.desktop;
+    mobileState = s.mobile;
+    const stepLogs = {
+      1: ['Pairing session created'],
+      2: ['Pairing session created', 'Waiting for phone to connect'],
+      3: ['QR code scanned', 'Redirecting to app store'],
+      4: ['Pairing session found', 'Connecting devices'],
+      5: ['Connecting devices', 'Waiting for desktop approval', 'Approval requested on desktop'],
+      6: ['Device approved', 'Pairing complete'],
+    };
+    logSystem(...(stepLogs[num] || []));
+    render();
+  }
+
+  function renderStepper() {
+    const current = getCurrentStep();
+    const error = isErrorState();
+    const el = document.getElementById('stepper');
+    let html = '<div class="stepper-line"></div>';
+    stepperSteps.forEach((name, i) => {
+      const num = i + 1;
+      let cls = '';
+      let content = num;
+      if (num < current) {
+        cls = 'completed';
+        content = '\u2713';
+      }
+      if (num === current) {
+        cls = error ? 'error' : 'current';
+        if (error) content = '!';
+      }
+      html += `<div class="stepper-step ${cls}" onclick="goToStep(${num})">
+        <div class="stepper-circle">${content}</div>
+        <div class="stepper-label">${name}</div>
+      </div>`;
+    });
+    el.innerHTML = html;
+    document.getElementById('stepper-status').textContent =
+      `Step ${current} of 6 \u00b7 ${stepperSteps[current - 1]}`;
+  }
+
+  // --- Render ---
+
+  let lastDesktopState = null;
+  let lastMobileState = null;
+
+  function render() {
+    const desktopEl = document.getElementById('desktop-content');
+    const mobileEl = document.getElementById('mobile-content');
+
+    if (desktopState !== lastDesktopState) {
+      desktopEl.innerHTML = desktopRenderers[desktopState]();
+      const sc = desktopEl.querySelector('.state-content');
+      if (sc) sc.classList.add('animate-in');
+      lastDesktopState = desktopState;
+    }
+
+    if (mobileState !== lastMobileState) {
+      mobileEl.innerHTML = mobileRenderers[mobileState]();
+      const sc = mobileEl.querySelector('.state-content');
+      if (sc) sc.classList.add('animate-in');
+      lastMobileState = mobileState;
+    }
+    const mobileAppContext = {
+      'idle': 'Camera',
+      'app-store': 'App Store',
+      'finish-on-desktop': 'Firefox',
+      'success': 'Firefox',
+      'resume-failed': 'Firefox',
+      'session-expired': 'Firefox',
+    };
+    document.getElementById('mobile-app-context').textContent =
+      mobileAppContext[mobileState] || '';
+    renderStepper();
+  }
+
+  // --- Actions ---
+
+  function showQRFromIntro() {
+    logSystem('Pairing session created', 'Waiting for phone to connect');
+    setState('qr-shown', undefined);
+  }
+
+  function simulateScan() {
+    if (isAppInstalled()) {
+      logSystem('QR code scanned', 'Firefox opened on mobile', 'Attempting to resume pairing session');
+      setState(undefined, 'finish-on-desktop');
+      setTimeout(() => {
+        logSystem('Pairing session found', 'Connecting devices');
+        setState('waiting', undefined);
+      }, 400);
+      waitingTimer = setTimeout(() => {
+        logSystem('Waiting for desktop approval', 'Approval requested on desktop');
+        setState('approval', undefined);
+      }, 1800);
+    } else {
+      logSystem('QR code scanned', 'Redirecting to app store');
+      setState(undefined, 'app-store');
+    }
+  }
+
+  function installFirefox() {
+    logSystem('Firefox installed and opened', 'Attempting to resume pairing session');
+    setState(undefined, 'finish-on-desktop');
+    setTimeout(() => {
+      logSystem('Pairing session found', 'Connecting devices');
+      setState('waiting', undefined);
+    }, 400);
+    waitingTimer = setTimeout(() => {
+      logSystem('Waiting for desktop approval', 'Approval requested on desktop');
+      setState('approval', undefined);
+    }, 1800);
+  }
+
+  function approveDevice() {
+    clearTimers();
+    logSystem('Device approved', 'Pairing complete');
+    setState('success', 'success');
+  }
+
+  function cancelApproval() {
+    clearTimers();
+    clearLog();
+    logSystem('Pairing session created', 'Waiting for phone to connect');
+    setState('qr-shown', 'idle');
+  }
+
+  function refreshQR() {
+    clearTimers();
+    clearLog();
+    logSystem('Pairing session created', 'Waiting for phone to connect');
+    setState('qr-shown', 'idle');
+  }
+
+  function tryAgain() {
+    logSystem('Attempting to resume pairing session');
+    setState(undefined, 'finish-on-desktop');
+    setTimeout(() => {
+      logSystem('Pairing session found', 'Connecting devices');
+      setState('waiting', undefined);
+    }, 400);
+    waitingTimer = setTimeout(() => {
+      logSystem('Waiting for desktop approval', 'Approval requested on desktop');
+      setState('approval', undefined);
+    }, 1800);
+  }
+
+  function scanAgain() {
+    clearTimers();
+    clearLog();
+    logSystem('Pairing session created', 'Waiting for phone to connect');
+    setState('qr-shown', 'idle');
+  }
+
+  // --- Debug ---
+
+  function resetFlow() {
+    clearTimers();
+    clearLog();
+    logSystem('Pairing session created', 'Waiting for phone to connect');
+    setState(getDefaultDesktopState(), 'idle');
+  }
+
+  function simulateExpired() {
+    clearTimers();
+    logSystem('Pairing session expired');
+    setState('expired', undefined);
+  }
+
+  function simulateResumeFail() {
+    logSystem('Pairing session not found', 'User must scan again');
+    setState(undefined, 'resume-failed');
+  }
+
+  // --- Init ---
+  logSystem('Pairing session created', 'Waiting for phone to connect');
+  render();
+</script>
+
+</body>
+</html>

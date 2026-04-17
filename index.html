@@ -3,79 +3,438 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>One QR Pairing Flow Prototype</title>
+<title>Pairing Flow Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-    background: #f5f5f5;
-    color: #333;
-    padding: 24px;
-    min-height: 100vh;
-  }
-
-  h1 {
-    text-align: center;
-    font-size: 18px;
-    font-weight: 600;
-    color: #555;
-    margin-bottom: 24px;
-    letter-spacing: 0.02em;
-  }
-
-  .panels {
-    display: flex;
-    gap: 24px;
-    justify-content: center;
-    align-items: flex-start;
-    margin-bottom: 32px;
-  }
-
-  .panel {
-    width: 340px;
-    min-height: 420px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     background: #fff;
-    padding: 32px 24px;
+    color: #202124;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 24px;
+  }
+
+  /* --- Layout --- */
+
+  .app {
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+    max-width: 1800px;
+    width: 100%;
+  }
+
+  /* --- Left sidebar --- */
+
+  .sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    padding-top: 4px;
+    transition: width 0.2s ease, opacity 0.2s ease, padding-top 0.2s ease;
+  }
+
+  .sidebar-section {
+    margin-bottom: 16px;
+  }
+
+  .sidebar-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: #6d6d6e;
+    letter-spacing: 0;
+    margin-bottom: 6px;
+  }
+
+  .sidebar select {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: 12px;
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid #dadce0;
+    border-radius: 4px;
+    background: #fff;
+    color: #202124;
+    cursor: pointer;
+    outline: none;
+  }
+
+  .sidebar-header {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 12px;
+  }
+
+  .sidebar-collapse-btn,
+  .sidebar-expand-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 1px solid #dadce0;
+    border-radius: 4px;
+    background: #fff;
+    color: #5f6368;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .sidebar-collapse-btn:hover,
+  .sidebar-expand-btn:hover {
+    background: #f1f3f4;
+  }
+
+  .sidebar-expand-btn { display: none; }
+
+  .app.sidebar-collapsed .sidebar {
+    width: 0;
+    overflow: hidden;
+    padding-top: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .app.sidebar-collapsed .sidebar-expand-btn {
+    display: inline-flex;
+    align-self: flex-start;
+    margin-top: 4px;
+  }
+
+  .sidebar select:focus {
+    border-color: #1a73e8;
+    box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.15);
+  }
+
+  .sidebar-btn-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .sidebar-btn {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 10px;
+    border: 1px solid #dadce0;
+    border-radius: 4px;
+    background: #fff;
+    color: #5f6368;
+    cursor: pointer;
+    transition: background 0.15s, box-shadow 0.15s;
+  }
+
+  .sidebar-btn:hover {
+    background: #f1f3f4;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+  }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .toggle-switch {
+    position: relative;
+    width: 36px;
+    height: 20px;
+    background: #C2C2C2;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .toggle-switch.on {
+    background: #0060DF;
+  }
+
+  .toggle-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s;
+  }
+
+  .toggle-switch.on::after {
+    transform: translateX(16px);
+  }
+
+  .ops-log {
+    list-style: none;
+  }
+
+  .ops-log li {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 11px;
+    color: #202124;
+    padding: 3px 4px;
+    line-height: 1.5;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+
+  .ops-log li:hover {
+    background: #f1f3f4;
+  }
+
+  .ops-log li.active {
+    background: #e8f0fe;
+    color: #1a73e8;
+    font-weight: 500;
+  }
+
+  .ops-log li.future {
+    color: #c4c7cc;
+  }
+
+  /* --- Devices area --- */
+
+  .devices {
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+    flex: 1;
+    min-width: 0;
+    max-height: 1200px;
+  }
+
+  /* --- Desktop browser --- */
+
+  .browser {
+    flex: 1;
+    min-width: 0;
+    min-height: 800px;
+    max-height: 1100px;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08);
+    border: 1px solid rgba(0,0,0,0.12);
+  }
+
+  .browser-chrome {
+    background: #f0f0f4;
+    padding: 0;
+    font-family: -apple-system, 'SF Pro Text', 'SF Pro', system-ui, sans-serif;
+    font-weight: 400;
+  }
+
+  .browser-tabbar {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px 0;
+    gap: 8px;
+  }
+
+  .window-dots {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .window-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  .window-dot.red { background: #ff5f57; }
+  .window-dot.yellow { background: #ffbd2e; }
+  .window-dot.green { background: #28c840; }
+
+  .browser-tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    font-size: 11px;
+    color: #15141a;
+    background: #fff;
+    border-radius: 4px;
+    max-width: 224px;
+  }
+
+  .browser-tab .tab-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+
+  .browser-tab .tab-icon img {
+    width: 16px;
+    height: 16px;
+    display: block;
+  }
+
+  .browser-tab .tab-close {
+    font-size: 14px;
+    color: #80868b;
+    margin-left: 4px;
+  }
+
+  .browser-tab-new {
+    padding: 4px 8px;
+    font-size: 16px;
+    color: #80868b;
+    align-self: center;
+  }
+
+  .browser-nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px 6px;
+    background: #f9f9fb;
+    font-family: -apple-system, 'SF Pro Text', 'SF Pro', system-ui, sans-serif;
+    font-weight: 400;
+  }
+
+  .browser-nav .nav-icons {
+    height: 32px;
+    flex-shrink: 0;
+  }
+
+  .browser-nav .nav-icons img {
+    height: 32px;
+    display: block;
+  }
+
+  .browser-url-bar {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px;
+    background: rgba(21,20,26,0.07);
+    border-radius: 4px;
+    font-size: 13px;
+    color: #32313c;
+    margin: 0 8px;
+  }
+
+  .browser-url-bar .lock-icon {
+    font-size: 16px;
+    color: #5f6368;
+  }
+
+  .browser-body {
+    background: #fafafb;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    position: relative;
+  }
+
+  .moz-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 16px 40px;
+    z-index: 1;
+  }
+
+  .moz-header img {
+    height: 24px;
+    width: auto;
+    display: block;
+  }
+
+  .desktop-content {
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    position: relative;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    background: #fafafb;
+    justify-content: center;
+    padding: 0;
   }
 
-  .panel-label {
-    position: absolute;
-    top: -10px;
-    left: 16px;
+  /* --- Phone --- */
+
+  .phone {
+    width: 284px;
+    flex-shrink: 0;
+  }
+
+  .phone-frame {
+    background: #1a1a1a;
+    border-radius: 36px;
+    padding: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08);
+  }
+
+  .phone-screen {
     background: #fff;
-    padding: 0 8px;
-    font-size: 11px;
-    font-weight: 600;
-    color: #999;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
+    border-radius: 24px;
+    overflow: hidden;
+    width: 260px;
+    height: 561px;
+    display: flex;
+    flex-direction: column;
   }
 
-  .mobile-app-context {
-    font-size: 10px;
+  .phone-status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px 6px;
+    font-family: -apple-system, 'SF Pro', system-ui, sans-serif;
+    font-size: 13px;
     font-weight: 600;
-    color: #aaa;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    padding: 4px 10px;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    margin-bottom: 12px;
-    min-height: 0;
-    transition: opacity 0.2s ease;
+    background: #ffffff;
+    color: #15141a;
   }
 
-  .mobile-app-context:empty {
+  .phone-status-icons {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+
+  .phone-status-icons span {
+    font-size: 13px;
+    color: #15141a;
+  }
+
+  .phone-notch {
     display: none;
   }
+
+  .phone-app-bar {
+    text-align: center;
+    padding: 10px 0 0;
+    font-size: 11px;
+    font-weight: 500;
+    color: #5f6368;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .mobile-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 260px;
+  }
+
+  /* --- Shared content styles --- */
 
   .state-content {
     display: flex;
@@ -85,6 +444,7 @@
     flex: 1;
     width: 100%;
     text-align: center;
+    padding: 24px 16px;
   }
 
   .state-content.animate-in {
@@ -97,24 +457,35 @@
   }
 
   .state-content h2 {
-    font-size: 16px;
-    font-weight: 600;
-    color: #333;
+    font-family: Metropolis, 'Inter', system-ui, sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #15141A;
     margin-bottom: 8px;
+    line-height: 1.5;
+  }
+
+  .phone .state-content h2 {
+    font-size: 15px;
   }
 
   .state-content p {
-    font-size: 13px;
-    color: #888;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 16px;
+    color: #32313C;
     margin-bottom: 16px;
-    line-height: 1.4;
+    line-height: 1.5;
+  }
+
+  .phone .state-content p {
+    font-size: 12px;
   }
 
   .qr-box {
     width: 160px;
     height: 160px;
-    border: 2px dashed #bbb;
-    border-radius: 4px;
+    border: 2px dashed #dadce0;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -125,169 +496,190 @@
   .qr-box svg {
     width: 120px;
     height: 120px;
-    opacity: 0.35;
+    opacity: 0.3;
   }
 
-  button {
-    font-family: inherit;
-    font-size: 13px;
+  /* Material buttons */
+
+  .btn {
+    font-family: Metropolis, 'Inter', system-ui, sans-serif;
+    font-size: 16px;
+    font-weight: 700;
     padding: 8px 20px;
     border-radius: 4px;
     cursor: pointer;
-    border: 1px solid #bbb;
-    background: #fff;
-    color: #333;
+    border: 1px solid transparent;
     margin: 4px;
-    transition: background 0.15s, border-color 0.15s;
+    transition: background 0.15s, box-shadow 0.15s;
+    letter-spacing: 0;
   }
 
-  button:hover {
-    background: #f0f0f0;
-    border-color: #999;
-  }
-
-  button.primary {
-    background: #444;
+  .btn-filled {
+    background: #0060DF;
+    border-color: #0250BB;
     color: #fff;
-    border-color: #444;
   }
 
-  button.primary:hover {
-    background: #333;
+  .btn-filled:hover {
+    background: #0250BB;
+    border-color: #0250BB;
   }
 
-  .link-btn {
+  .btn-filled:active {
+    background: #073072;
+    border-color: #073072;
+  }
+
+  .btn-outlined {
+    background: #FAFAFB;
+    color: #0C0C0D;
+    border: 1px solid #C2C2C2;
+    font-weight: 400;
+  }
+
+  .btn-outlined:hover {
+    background: #E7E7E7;
+    border-color: #C2C2C2;
+  }
+
+  .btn-outlined:active {
+    background: #E7E7E7;
+    border-color: #6D6D6E;
+  }
+
+  .btn-text {
     background: none;
     border: none;
-    color: #888;
-    text-decoration: underline;
-    font-size: 12px;
+    color: #0060DF;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 16px;
+    font-weight: 500;
     cursor: pointer;
-    padding: 4px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    height: auto;
   }
 
-  .link-btn:hover {
-    color: #555;
+  .btn-text:hover {
+    background: #F0F0F4;
   }
+
+  .btn-text.muted {
+    color: #6D6D6E;
+  }
+
+  .btn-text.muted:hover {
+    background: #F0F0F4;
+  }
+
+  /* Link hover states */
+  .browser-body a:hover {
+    color: #0250BB;
+  }
+
+  .browser-body a:active {
+    color: #054096;
+  }
+
+  .phone .btn { font-size: 12px; padding: 7px 20px; }
 
   .spinner {
     width: 32px;
     height: 32px;
-    border: 3px solid #ddd;
-    border-top-color: #888;
+    border: 3px solid #e8eaed;
+    border-top-color: #0060df;
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
     margin-bottom: 16px;
   }
 
-  @keyframes spin {
-    to { transform: rotate(360deg); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .icon-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    font-size: 24px;
   }
 
-  .check {
-    width: 40px;
-    height: 40px;
-    border: 2px solid #888;
-    border-radius: 50%;
+  .icon-circle.success {
+    background: #E3FFF3;
+    color: #3FE1B0;
+  }
+
+  .icon-circle.warning {
+    background: #FFF4DE;
+    color: #FFA436;
+  }
+
+  .icon-circle.info {
+    background: #E7DFFF;
+    color: #0060DF;
+  }
+
+  .email-badge {
+    font-size: 12px;
+    color: #15141A;
+    background: #F0F0F4;
+    padding: 6px 14px;
+    border-radius: 16px;
+    margin-bottom: 16px;
+    font-weight: 400;
+  }
+
+  .icon-placeholder {
+    width: 48px;
+    height: 48px;
+    border: 2px solid #dadce0;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     margin-bottom: 16px;
     font-size: 20px;
-    color: #888;
+    color: #80868b;
+    background: #f8f9fa;
   }
 
-  .warn {
-    width: 40px;
-    height: 40px;
-    border: 2px solid #aaa;
-    border-radius: 50%;
+  .onboarding-dots {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    gap: 6px;
     margin-bottom: 16px;
-    font-size: 18px;
-    color: #aaa;
   }
 
-  .debug-bar {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    flex-wrap: wrap;
-    padding: 16px;
-    border: 1px dashed #ddd;
-    border-radius: 6px;
-    background: #fafafa;
-    max-width: 704px;
-    margin: 0 auto;
-    align-items: center;
+  .onboarding-dots .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #e8eaed;
   }
 
-  .debug-bar span {
-    font-size: 11px;
-    color: #aaa;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-right: 8px;
-    align-self: center;
+  .onboarding-dots .dot.active {
+    background: #0060df;
   }
 
-  .debug-bar button {
-    font-size: 11px;
-    padding: 5px 12px;
-    border-style: dashed;
-    color: #888;
-  }
-
-  .debug-bar select {
-    font-family: inherit;
-    font-size: 11px;
-    padding: 5px 8px;
-    border: 1px dashed #bbb;
-    border-radius: 4px;
-    background: #fff;
-    color: #888;
-    cursor: pointer;
-  }
-
-  .debug-bar label {
-    font-size: 11px;
-    color: #aaa;
-    letter-spacing: 0.04em;
-  }
-
-  .debug-sep {
-    width: 1px;
-    height: 20px;
-    background: #ddd;
-    margin: 0 4px;
-  }
-
-  .context-hint {
-    font-size: 11px;
-    color: #aaa;
-    margin-bottom: 4px;
-    font-style: italic;
-  }
+  /* Camera viewfinder */
 
   .camera-viewfinder {
     width: 100%;
     flex: 1;
     background: #1a1a1a;
-    border-radius: 4px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     position: relative;
     overflow: hidden;
-    min-height: 280px;
+    min-height: 300px;
   }
 
   .camera-viewfinder .scan-frame {
-    width: 140px;
-    height: 140px;
+    width: 120px;
+    height: 120px;
     position: relative;
   }
 
@@ -295,22 +687,23 @@
     position: absolute;
     width: 20px;
     height: 20px;
-    border-color: #fff;
+    border-color: rgba(255,255,255,0.8);
     border-style: solid;
     border-width: 0;
   }
 
-  .corner.tl { top: 0; left: 0; border-top-width: 3px; border-left-width: 3px; border-top-left-radius: 4px; }
-  .corner.tr { top: 0; right: 0; border-top-width: 3px; border-right-width: 3px; border-top-right-radius: 4px; }
-  .corner.bl { bottom: 0; left: 0; border-bottom-width: 3px; border-left-width: 3px; border-bottom-left-radius: 4px; }
-  .corner.br { bottom: 0; right: 0; border-bottom-width: 3px; border-right-width: 3px; border-bottom-right-radius: 4px; }
+  /* Corner bracket overrides — scoped under .camera-viewfinder to beat the base `.camera-viewfinder .scan-frame .corner { border-width: 0 }` rule's specificity. Without this scoping, the shorthand `border-width: 0` wins and the corner brackets render invisibly, which is what produced the apparent "line artifact" when re-renders triggered. */
+  .camera-viewfinder .corner.tl { top: 0; left: 0; border-top-width: 3px; border-left-width: 3px; border-top-left-radius: 4px; }
+  .camera-viewfinder .corner.tr { top: 0; right: 0; border-top-width: 3px; border-right-width: 3px; border-top-right-radius: 4px; }
+  .camera-viewfinder .corner.bl { bottom: 0; left: 0; border-bottom-width: 3px; border-left-width: 3px; border-bottom-left-radius: 4px; }
+  .camera-viewfinder .corner.br { bottom: 0; right: 0; border-bottom-width: 3px; border-right-width: 3px; border-bottom-right-radius: 4px; }
 
   .camera-viewfinder .scan-line {
     position: absolute;
-    left: 10%;
-    right: 10%;
+    left: 15%;
+    right: 15%;
     height: 2px;
-    background: rgba(255,255,255,0.4);
+    background: rgba(255,255,255,0.3);
     animation: scanMove 2s ease-in-out infinite;
   }
 
@@ -331,371 +724,518 @@
     padding: 12px;
     display: flex;
     justify-content: center;
-    border-radius: 0 0 4px 4px;
   }
 
-  .camera-bottom-bar button.primary {
+  .camera-bottom-bar .btn-filled {
+    border-radius: 20px;
     font-size: 12px;
     padding: 8px 24px;
-    border-radius: 20px;
-    background: #555;
-    border-color: #555;
-  }
-
-  .camera-bottom-bar button.primary:hover {
-    background: #666;
-  }
-
-
-  .stepper-wrapper {
-    max-width: 704px;
-    margin: 0 auto 24px;
-  }
-
-  .stepper {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    position: relative;
-    padding: 0 8px;
-  }
-
-  .stepper-line {
-    position: absolute;
-    top: 12px;
-    left: 32px;
-    right: 32px;
-    height: 2px;
-    background: #ddd;
-    z-index: 0;
-  }
-
-  .stepper-step {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    z-index: 1;
-    min-width: 56px;
-    cursor: pointer;
-  }
-
-  .stepper-step:hover .stepper-circle {
-    box-shadow: 0 0 0 3px rgba(0,0,0,0.08);
-  }
-
-  .stepper-circle {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    border: 2px solid #ccc;
-    background: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: 600;
-    color: #bbb;
-    margin-bottom: 6px;
-    transition: all 0.2s ease;
-  }
-
-  .stepper-step.completed .stepper-circle {
-    background: #999;
-    border-color: #999;
+    background: rgba(255,255,255,0.2);
     color: #fff;
-    font-size: 12px;
+    border: 1px solid rgba(255,255,255,0.3);
   }
 
-  .stepper-step.current .stepper-circle {
-    background: #444;
-    border-color: #444;
-    color: #fff;
+  .camera-bottom-bar .btn-filled:hover {
+    background: rgba(255,255,255,0.3);
+    box-shadow: none;
   }
 
-  .stepper-step.error .stepper-circle {
-    background: #fff;
-    border-color: #999;
-    color: #999;
+  /* --- Nova design system --- */
+  /* Tokens from /Users/lbybee/Documents/code/nova/styles.md (Light mode) */
+
+  .nova-surface {
+    font-family: 'SF Pro', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-variation-settings: 'wdth' 100;
+    color: #180e30;
+    background: #f2f0f8; /* background/color/canvas — Nova Light */
   }
 
-  .stepper-label {
-    font-size: 10px;
-    color: #bbb;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    font-weight: 500;
+  /* When Nova is active, cascade canvas color across desktop surfaces */
+  .variant-nova .browser-body,
+  .variant-nova .desktop-content { background: #f2f0f8; }
+
+  /* Mobile uses the card/panel background (white) on the full phone screen.
+     Overrides .nova-surface (which paints canvas on desktop) inside the phone. */
+  .variant-nova .phone-screen,
+  .variant-nova .mobile-content,
+  .variant-nova .phone .nova-surface { background: #ffffff !important; }
+
+  /* Nova mobile scale-down — mirrors FxA's ~75–80% mobile sizing so both variants read at comparable density in the phone mock */
+  .variant-nova .mobile-content .nova-heading,
+  .variant-nova .mobile-content .nova-heading--xl { font-size: 15px; }
+  .variant-nova .mobile-content .nova-body,
+  .variant-nova .mobile-content .nova-body--deemph { font-size: 11px; }
+  .variant-nova .mobile-content .nova-link { font-size: 11px; }
+  .variant-nova .mobile-content .nova-link--lg { font-size: 13px; line-height: 1.2; }
+  .variant-nova .mobile-content .nova-btn {
+    min-height: 32px; /* button/min/height (Nova default) */
+    font-size: 13px; /* proportional scale-down from desktop 15px (~85%) */
+    padding: 3px 12px;
+  }
+  .variant-nova .mobile-content .nova-inset { padding: 12px; }
+
+  /* Modal header (Sync and Save Data nav bar) keeps its original 13px size — not scaled with the rest of the mobile content */
+  .variant-nova .mobile-content .nova-modal-header .nova-link { font-size: 13px; }
+
+  /* Hide the Nova flag logo at all times (Nova variant shows no logo in the moz-header) */
+  .moz-header img.moz-logo-nova { display: none; }
+  /* In Nova variant, also hide the Mozilla wordmark — no logo in the header */
+  .variant-nova .moz-header img.moz-logo-fxa { display: none; }
+
+  /* box-shadow/level-4 — (0,0.5) blur 2 rgba(0,0,0,0.02) + (0,4) blur 16 rgba(0,0,0,0.05). Applied to every Nova card for visual consistency. */
+  .nova-card,
+  .nova-card--glow {
+    background: #ffffff; /* panel/background/color */
+    border-radius: 16px; /* panel/border/radius */
+    box-shadow: 0 0.5px 2px 0 rgba(0,0,0,0.02), 0 4px 16px 0 rgba(0,0,0,0.05);
   }
 
-  .stepper-step.completed .stepper-label { color: #999; }
-  .stepper-step.current .stepper-label { color: #444; font-weight: 600; }
-  .stepper-step.error .stepper-label { color: #999; }
-
-  .stepper-status {
-    text-align: center;
-    font-size: 11px;
-    color: #999;
-    margin-top: 10px;
-    letter-spacing: 0.02em;
+  /* heading/large — SF Pro Semibold (590), 20px, line-height 100% */
+  .nova-heading,
+  .nova-heading--xl {
+    font-family: 'SF Pro', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-size: 20px;
+    font-weight: 590;
+    color: #180e30; /* text/color */
+    line-height: 1;
+    margin: 0;
+    letter-spacing: 0;
   }
 
-  .bts-panel {
-    max-width: 704px;
-    margin: 12px auto 0;
-    border: 1px dashed #ddd;
-    border-radius: 6px;
-    background: #fafafa;
-    padding: 12px 16px;
-  }
-
-  .bts-panel .bts-title {
-    font-size: 11px;
-    font-weight: 600;
-    color: #aaa;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-bottom: 8px;
-  }
-
-  .bts-log {
-    list-style: none;
-    padding: 0;
+  /* root — SF Pro Regular (400), font-size/root 13px */
+  .nova-body {
+    font-family: 'SF Pro', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    color: #180e30; /* text/color */
+    line-height: 1.45;
     margin: 0;
   }
 
-  .bts-log li {
-    font-size: 11px;
-    font-family: monospace;
-    color: #aaa;
-    padding: 2px 0;
-    line-height: 1.5;
+  .nova-body--deemph {
+    font-family: 'SF Pro', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    color: #14092bb2; /* text/color/deemphasized */
+    line-height: 1.45;
+    margin: 0;
+    padding: 0 8px;
   }
 
-  .bts-log li:last-child {
-    color: #555;
-    font-weight: 600;
+  /* Button — base bold (SF Pro Semibold 590 / 15), button/border/radius 9999, button/min/height/large 40, button/padding 3x14 */
+  .nova-btn {
+    font-family: 'SF Pro', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-size: 15px;
+    font-weight: 590;
+    line-height: 1;
+    border-radius: 9999px; /* button/border/radius */
+    padding: 3px 14px; /* button/padding/block × button/padding/inline */
+    min-height: 40px; /* button/min/height/large */
+    cursor: pointer;
+    border: 1px solid transparent;
+    letter-spacing: 0;
   }
 
-  .bts-log li::before {
-    content: '\25B8 ';
-    color: #ccc;
+  .nova-btn--primary {
+    background: #764edd; /* button/background/color/primary */
+    border-color: #00000000; /* button/border/color/primary */
+    color: #ffffff; /* button/text/color/primary */
   }
 
-  .bts-log li:last-child::before {
-    color: #888;
+  .nova-btn--ghost {
+    background: #00000000; /* button/background/color/ghost */
+    border-color: #00000000; /* button/border/color/ghost */
+    color: #161423; /* button/text/color/ghost */
+  }
+
+  /* Documented toolbar hover overlay — the only hover state in Nova styles.md */
+  .nova-btn--ghost:hover {
+    background: #7b618f26; /* toolbar/button/background/color/hover */
+  }
+
+  /* Default button — Nova `<moz-button>` with no type (outlined): transparent bg, purple border, dark text */
+  .nova-btn--default {
+    background: #00000000; /* button/background/color */
+    border-color: #764edd; /* button/border/color */
+    color: #161423; /* button/text/color */
+  }
+  .nova-btn--default:hover {
+    background: #e7e1f8; /* button/background/color/hover — color/violet-desaturated/10 */
+  }
+
+  /* Text button — used for cancel actions. button/text/color (#161423) on transparent; hover uses button/background/color/hover (#e7e1f8, color/violet-desaturated/10). */
+  .nova-btn--text {
+    background: #00000000; /* button/background/color */
+    border-color: #00000000;
+    color: #161423; /* button/text/color */
+  }
+  .nova-btn--text:hover {
+    background: #e7e1f8; /* button/background/color/hover */
+    color: #161423; /* button/text/color/hover */
+  }
+
+  /* root-link — SF Pro Regular 400 / 13 / link/color */
+  .nova-link {
+    font-family: 'SF Pro', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    color: #764edd; /* link/color → color/accent/primary */
+    text-decoration: underline;
+    font-weight: 400;
+    font-size: 13px;
+    line-height: 1;
+  }
+
+  .nova-link:hover {
+    color: #5939a8; /* link/color/hover → color/accent/primary/hover → color/violet/60 */
+  }
+
+  /* Desktop Nova screens use the hover color at rest (higher-contrast purple) */
+  .variant-nova .desktop-content .nova-link {
+    color: #5939a8;
+  }
+
+  /* Desktop Nova: slightly wider horizontal padding on deemphasized body text */
+  .variant-nova .desktop-content .nova-body--deemph {
+    padding: 0 12px;
+  }
+
+  /* Base-size link — for standalone text links on desktop and mobile (e.g. Cancel pairing, Manage sync) */
+  .nova-link--lg {
+    font-size: 15px;
+    line-height: 1.2;
+  }
+
+  /* Device info inset — border/radius/large 12, border/color/default #e8e7ec, color/neutral/0 #fcfbff. Text color button/text/color. */
+  .nova-inset {
+    background: #fcfbff; /* color/neutral/0 */
+    border: 1px solid #e8e7ec; /* border/color/default */
+    border-radius: 12px; /* border/radius/large */
+    padding: 16px;
+    overflow: clip;
+    white-space: nowrap;
+  }
+  .nova-inset .nova-body {
+    color: #161423; /* button/text/color */
+  }
+
+  /* Small-variant button sizing for the dark camera bottom bar — only spec-valid size (32) */
+  .camera-bottom-bar .nova-btn--primary {
+    min-height: 32px; /* button/min/height */
   }
 </style>
 </head>
 <body>
 
-<h1>One QR Pairing Flow Prototype</h1>
+<div class="app">
+  <!-- Left sidebar: settings & operations log -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <button class="sidebar-collapse-btn" onclick="toggleSidebar()" aria-label="Collapse settings" title="Collapse settings">
+        <span aria-hidden="true">&laquo;</span>
+      </button>
+    </div>
 
-<div class="stepper-wrapper">
-  <div class="stepper" id="stepper"></div>
-  <div class="stepper-status" id="stepper-status"></div>
-</div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Design variant</div>
+      <select id="variant-select" onchange="switchVariant()">
+        <option value="current-fxa">FxA Design System</option>
+        <option value="nova">Nova Design System</option>
+      </select>
+    </div>
 
-<div class="panels">
-  <div class="panel" id="desktop-panel">
-    <div class="panel-label">Desktop</div>
-    <div id="desktop-content"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Entrypoint</div>
+      <select id="entrypoint-select" onchange="resetFlow()">
+        <option value="direct-link">Direct link</option>
+        <option value="auth-promo">Promo in auth flow</option>
+        <option value="mobile-first">Mobile first</option>
+      </select>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="toggle-row">
+        <div class="sidebar-label" style="margin-bottom:0;">Mobile has Firefox</div>
+        <div id="app-installed-toggle" class="toggle-switch on" onclick="this.classList.toggle('on')"></div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Actions</div>
+      <div class="sidebar-btn-row">
+        <button class="sidebar-btn" onclick="resetFlow()">Reset</button>
+        <button class="sidebar-btn" onclick="simulateTimeout()">Timeout</button>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Operations</div>
+      <ul class="ops-log" id="bts-log"></ul>
+    </div>
   </div>
-  <div class="panel" id="mobile-panel">
-    <div class="panel-label">Mobile</div>
-    <div class="mobile-app-context" id="mobile-app-context"></div>
-    <div id="mobile-content"></div>
+
+  <!-- Re-expand handle shown only when the sidebar is collapsed -->
+  <button class="sidebar-expand-btn" onclick="toggleSidebar()" aria-label="Show settings" title="Show settings">
+    <span aria-hidden="true">&raquo;</span>
+  </button>
+
+  <!-- Devices -->
+  <div class="devices">
+    <!-- Desktop browser -->
+    <div class="browser">
+      <div class="browser-chrome">
+        <div class="browser-tabbar">
+          <div class="window-dots">
+            <div class="window-dot red"></div>
+            <div class="window-dot yellow"></div>
+            <div class="window-dot green"></div>
+          </div>
+          <div class="browser-tab">
+            <div class="tab-icon"><img src=":assets/Favicon.svg" alt="Firefox"></div>
+            <span id="browser-tab-text">Connect your phone or tablet</span>
+            <span class="tab-close">&times;</span>
+          </div>
+          <div class="browser-tab-new">+</div>
+        </div>
+        <div class="browser-nav">
+          <div class="nav-icons nav-icons--left"><img src=":assets/chrome/Actions left.svg" alt=""></div>
+          <div class="browser-url-bar">
+            <span id="browser-url">https://accounts.firefox.com/pair</span>
+          </div>
+          <div class="nav-icons nav-icons--right"><img src=":assets/chrome/Actions right.svg" alt=""></div>
+        </div>
+      </div>
+      <div class="browser-body">
+        <div class="moz-header">
+          <img class="moz-logo-fxa" src=":assets/mozilla-product-logo.svg" alt="Mozilla">
+          <img class="moz-logo-nova" src=":assets/nova/logo.svg" alt="Mozilla">
+        </div>
+        <div class="desktop-content" id="desktop-content"></div>
+      </div>
+    </div>
+
+    <!-- Phone -->
+    <div class="phone">
+      <div class="phone-frame">
+        <div class="phone-screen">
+          <div class="phone-notch" id="phone-notch"></div>
+          <div class="phone-status-bar" id="phone-status-bar">
+            <span class="time">9:41</span>
+            <div class="phone-status-icons">
+              <span class="material-icons-outlined" style="font-size:14px">signal_cellular_alt</span>
+              <span class="material-icons-outlined" style="font-size:14px">wifi</span>
+              <span class="material-icons-outlined" style="font-size:14px">battery_full</span>
+            </div>
+          </div>
+          <div class="mobile-content" id="mobile-content"></div>
+        </div>
+      </div>
+      <div class="phone-app-bar" id="mobile-app-context">Camera</div>
+    </div>
   </div>
-</div>
-
-<div class="debug-bar">
-  <span>Debug</span>
-  <label>Entrypoint
-    <select id="entrypoint-select" onchange="onEntrypointChange()">
-      <optgroup label="Core /pair entry paths">
-        <option value="direct">Direct navigation</option>
-        <option value="connect-another">Connect Another Device redirect</option>
-        <option value="post-signin">Post-sign-in broker</option>
-        <option value="signup-confirmed">Signup Confirmed Sync page</option>
-      </optgroup>
-      <optgroup label="Recognized Firefox sources">
-        <option value="fxa_discoverability_native">fxa_discoverability_native</option>
-        <option value="fxa_app_menu">fxa_app_menu</option>
-        <option value="preferences">preferences</option>
-        <option value="synced-tabs">synced-tabs</option>
-        <option value="tabs-sidebar">tabs-sidebar</option>
-        <option value="fx-view">fx-view</option>
-      </optgroup>
-    </select>
-  </label>
-  <div class="debug-sep"></div>
-  <label>Mobile app installed
-    <select id="app-installed-select">
-      <option value="yes">Yes</option>
-      <option value="no">No</option>
-    </select>
-  </label>
-  <div class="debug-sep"></div>
-  <button onclick="resetFlow()">Reset</button>
-  <button onclick="simulateExpired()">Simulate QR expired</button>
-  <button onclick="simulateResumeFail()">Simulate resume failure</button>
-</div>
-
-<div class="bts-panel">
-  <div class="bts-title">Behind the scenes</div>
-  <ul class="bts-log" id="bts-log"></ul>
 </div>
 
 <script>
+  const MOCK_EMAIL = 'laurel@mozilla.com';
+  const CROSS_DEVICE_DELAY_MS = 500;
+
   let desktopState = 'qr-shown';
   let mobileState = 'idle';
-  let waitingTimer = null;
+  let mobileConfirmed = false;
+  let timers = [];
 
-  // --- Behind the scenes log ---
+  // --- Log with state history ---
 
-  const MAX_LOG = 5;
-  let sysLog = [];
+  let sysLog = []; // { message, desktop, mobile }
+  let selectedIndex = -1; // -1 means "follow the latest"
 
   function logSystem(...messages) {
-    messages.forEach(m => sysLog.push(m));
-    if (sysLog.length > MAX_LOG) sysLog = sysLog.slice(-MAX_LOG);
+    // If browsing history, trim future entries before adding new ones
+    if (selectedIndex >= 0 && selectedIndex < sysLog.length - 1) {
+      sysLog = sysLog.slice(0, selectedIndex + 1);
+    }
+    messages.forEach(m => {
+      sysLog.push({ message: m, desktop: desktopState, mobile: mobileState });
+    });
+    selectedIndex = sysLog.length - 1;
     renderLog();
   }
 
-  function clearLog() {
-    sysLog = [];
-    renderLog();
-  }
+  function clearLog() { sysLog = []; selectedIndex = -1; renderLog(); }
 
   function renderLog() {
     const el = document.getElementById('bts-log');
-    el.innerHTML = sysLog.map(m => `<li>${m}</li>`).join('');
+    const activeIdx = selectedIndex >= 0 ? selectedIndex : sysLog.length - 1;
+    el.innerHTML = sysLog.map((entry, i) => {
+      let cls = '';
+      if (i === activeIdx) cls = 'active';
+      else if (i > activeIdx) cls = 'future';
+      return `<li class="${cls}" onclick="restoreSnapshot(${i})">${entry.message}</li>`;
+    }).join('');
   }
 
-  const entrypointContextHint = {
-    'direct': '',
-    'connect-another': "You\u2019re signed in. Add another device.",
-    'post-signin': "You\u2019re signed in. Continue on your phone.",
-    'signup-confirmed': '',
-    'fxa_discoverability_native': 'Opened from Firefox toolbar',
-    'fxa_app_menu': 'Opened from Firefox menu',
-    'preferences': 'Opened from Sync settings',
-    'synced-tabs': 'Opened from Synced Tabs',
-    'tabs-sidebar': 'Opened from Tabs sidebar',
-    'fx-view': 'Opened from Firefox View',
-  };
-
-  function getEntrypoint() {
-    return document.getElementById('entrypoint-select').value;
-  }
-
-  function getDefaultDesktopState() {
-    return getEntrypoint() === 'signup-confirmed' ? 'signup-intro' : 'qr-shown';
-  }
-
-  function onEntrypointChange() {
-    clearTimers();
-    clearLog();
-    desktopState = getDefaultDesktopState();
-    mobileState = 'idle';
-    logSystem('Pairing session created', 'Waiting for phone to connect');
+  function restoreSnapshot(index) {
+    clearAllTimers();
+    const entry = sysLog[index];
+    desktopState = entry.desktop;
+    mobileState = entry.mobile;
+    selectedIndex = index;
+    mobileConfirmed = false;
+    lastDesktopState = null;
+    lastMobileState = null;
+    renderLog();
     render();
   }
 
-  function clearTimers() {
-    if (waitingTimer) { clearTimeout(waitingTimer); waitingTimer = null; }
+  function getDefaultDesktopState() {
+    return document.getElementById('entrypoint-select').value === 'mobile-first' ? 'empty' : 'qr-shown';
   }
 
-  function setState(desktop, mobile) {
+  function getDefaultMobileState() {
+    return document.getElementById('entrypoint-select').value === 'mobile-first' ? 'mobile-first' : 'idle';
+  }
+
+  function isAppInstalled() {
+    return document.getElementById('app-installed-toggle').classList.contains('on');
+  }
+
+  function clearAllTimers() { timers.forEach(t => clearTimeout(t)); timers = []; }
+  function addTimer(fn, ms) { timers.push(setTimeout(fn, ms)); }
+
+  function setState(desktop, mobile, ...messages) {
     if (desktop !== undefined) desktopState = desktop;
     if (mobile !== undefined) mobileState = mobile;
+    if (messages.length) logSystem(...messages);
     render();
   }
 
   // --- Desktop renderers ---
 
-  const desktopRenderers = {
-    'signup-intro': () => `
-      <div class="state-content">
-        <h2>Add another device</h2>
-        <p>Connect your phone to start syncing</p>
-        <button class="primary" onclick="showQRFromIntro()">Show QR code</button>
-      </div>`,
+  const QR_SVG = `
+    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="5" y="5" width="30" height="30" rx="2" stroke="#999" stroke-width="2"/>
+      <rect x="10" y="10" width="20" height="20" rx="1" fill="#bbb"/>
+      <rect x="65" y="5" width="30" height="30" rx="2" stroke="#999" stroke-width="2"/>
+      <rect x="70" y="10" width="20" height="20" rx="1" fill="#bbb"/>
+      <rect x="5" y="65" width="30" height="30" rx="2" stroke="#999" stroke-width="2"/>
+      <rect x="10" y="70" width="20" height="20" rx="1" fill="#bbb"/>
+      <rect x="42" y="5" width="8" height="8" fill="#ccc"/>
+      <rect x="42" y="18" width="8" height="8" fill="#ccc"/>
+      <rect x="55" y="42" width="8" height="8" fill="#ccc"/>
+      <rect x="42" y="42" width="8" height="8" fill="#ccc"/>
+      <rect x="68" y="42" width="8" height="8" fill="#ccc"/>
+      <rect x="42" y="55" width="8" height="8" fill="#ccc"/>
+      <rect x="55" y="55" width="8" height="8" fill="#ccc"/>
+      <rect x="68" y="55" width="8" height="8" fill="#ccc"/>
+      <rect x="82" y="42" width="8" height="8" fill="#ccc"/>
+      <rect x="5" y="42" width="8" height="8" fill="#ccc"/>
+      <rect x="18" y="42" width="8" height="8" fill="#ccc"/>
+      <rect x="5" y="55" width="8" height="8" fill="#ccc"/>
+      <rect x="68" y="68" width="8" height="8" fill="#ccc"/>
+      <rect x="82" y="68" width="8" height="8" fill="#ccc"/>
+      <rect x="68" y="82" width="8" height="8" fill="#ccc"/>
+      <rect x="82" y="82" width="8" height="8" fill="#ccc"/>
+      <rect x="55" y="82" width="8" height="8" fill="#ccc"/>
+    </svg>`;
 
+  const desktopRenderers = {
     'qr-shown': () => {
-      const hint = entrypointContextHint[getEntrypoint()] || '';
+      const isPromo = document.getElementById('entrypoint-select').value === 'auth-promo';
       return `
-      <div class="state-content">
-        ${hint ? '<div class="context-hint">' + hint + '</div>' : ''}
-        <h2>Add another device</h2>
-        <div class="qr-box">
-          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="5" y="5" width="30" height="30" rx="2" stroke="#999" stroke-width="2"/>
-            <rect x="10" y="10" width="20" height="20" rx="1" fill="#bbb"/>
-            <rect x="65" y="5" width="30" height="30" rx="2" stroke="#999" stroke-width="2"/>
-            <rect x="70" y="10" width="20" height="20" rx="1" fill="#bbb"/>
-            <rect x="5" y="65" width="30" height="30" rx="2" stroke="#999" stroke-width="2"/>
-            <rect x="10" y="70" width="20" height="20" rx="1" fill="#bbb"/>
-            <rect x="42" y="5" width="8" height="8" fill="#ccc"/>
-            <rect x="42" y="18" width="8" height="8" fill="#ccc"/>
-            <rect x="55" y="42" width="8" height="8" fill="#ccc"/>
-            <rect x="42" y="42" width="8" height="8" fill="#ccc"/>
-            <rect x="68" y="42" width="8" height="8" fill="#ccc"/>
-            <rect x="42" y="55" width="8" height="8" fill="#ccc"/>
-            <rect x="55" y="55" width="8" height="8" fill="#ccc"/>
-            <rect x="68" y="55" width="8" height="8" fill="#ccc"/>
-            <rect x="82" y="42" width="8" height="8" fill="#ccc"/>
-            <rect x="5" y="42" width="8" height="8" fill="#ccc"/>
-            <rect x="18" y="42" width="8" height="8" fill="#ccc"/>
-            <rect x="5" y="55" width="8" height="8" fill="#ccc"/>
-            <rect x="68" y="68" width="8" height="8" fill="#ccc"/>
-            <rect x="82" y="68" width="8" height="8" fill="#ccc"/>
-            <rect x="68" y="82" width="8" height="8" fill="#ccc"/>
-            <rect x="82" y="82" width="8" height="8" fill="#ccc"/>
-            <rect x="55" y="82" width="8" height="8" fill="#ccc"/>
-          </svg>
-        </div>
-        <p>Scan with your phone camera</p>
-        <button class="link-btn">Sign in instead</button>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#FAFAFB;padding:40px 64px;gap:32px;">
+          <div style="background:#fff;border-radius:12px;box-shadow:0px 2px 14px rgba(58,57,68,0.2);width:480px;max-width:100%;padding:40px 40px 0;display:flex;flex-direction:column;align-items:center;gap:24px;">
+            <div style="text-align:center;width:360px;max-width:100%;display:flex;flex-direction:column;gap:4px;">
+              <p style="font-family:Metropolis,'Inter',system-ui,sans-serif;font-size:22px;font-weight:700;color:#15141A;line-height:1.5;margin:0;">Connect your phone or tablet</p>
+              <p style="font-family:'Inter',system-ui,sans-serif;font-size:14px;font-weight:400;color:#32313C;line-height:1.5;margin:0;">Start syncing your saved passwords, tabs, browsing history and more across all your signed in devices.</p>
+            </div>
+            <div style="position:relative;width:540px;max-width:112%;overflow:hidden;">
+              <img src=":assets/Kit QR.svg" alt="QR Code" style="width:100%;display:block;">
+              <p style="position:absolute;bottom:calc(18% - 16px);left:50%;transform:translateX(-50%);font-family:'Inter',system-ui,sans-serif;font-size:12px;font-weight:400;color:#15141A;line-height:1.5;margin:0;text-align:center;width:240px;">Scan QR code to download<br>Firefox on your mobile device.</p>
+              <a href="https://support.mozilla.org/en-US/kb/how-do-i-set-sync-my-computer#w_connect-additional-devices-to-sync" target="_blank" style="position:absolute;bottom:calc(18% - 44px);left:50%;transform:translateX(-50%);font-family:'Inter',system-ui,sans-serif;font-size:12px;font-weight:400;color:#0060DF;line-height:1.5;text-decoration:underline;">Trouble scanning?</a>
+            </div>
+          </div>
+          ${isPromo ? '<button class="btn btn-outlined" style="padding:8px 20px;margin:0;">Skip for now</button>' : ''}
       </div>`;
     },
 
-    'waiting': () => `
-      <div class="state-content">
-        <h2>Connecting your phone...</h2>
-        <div class="spinner"></div>
-        <p>Check your phone</p>
+    'scan-detected': () => `
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#FAFAFB;padding:40px 64px;">
+        <div style="background:#fff;border-radius:12px;box-shadow:0px 2px 14px rgba(58,57,68,0.2);width:480px;max-width:100%;padding:40px 40px 40px;display:flex;flex-direction:column;gap:32px;align-items:center;">
+          <div style="display:flex;justify-content:center;padding:16px 0;">
+            <img src=":assets/phone.svg" alt="Phone notification" style="height:200px;width:auto;">
+          </div>
+          <div style="text-align:center;display:flex;flex-direction:column;gap:4px;width:100%;">
+            <p style="font-family:Metropolis,'Inter',system-ui,sans-serif;font-size:22px;font-weight:700;color:#15141A;line-height:1.5;margin:0;">Continue on mobile</p>
+            <p style="font-family:'Inter',system-ui,sans-serif;font-size:14px;font-weight:400;color:#32313C;line-height:1.5;margin:0;">Follow the prompts on your mobile device to continue</p>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:24px;width:100%;align-items:center;">
+            <a href="#" onclick="cancelApproval();return false;" style="font-family:'Inter',system-ui,sans-serif;font-size:14px;font-weight:400;color:#15141A;text-decoration:underline;text-align:center;padding:16px 0;">Cancel pairing</a>
+          </div>
+        </div>
       </div>`,
 
     'approval': () => `
-      <div class="state-content">
-        <h2>Approve this device?</h2>
-        <div class="warn">?</div>
-        <p>Finish setup for your phone</p>
-        <div>
-          <button class="primary" onclick="approveDevice()">Approve</button>
-          <button onclick="cancelApproval()">Cancel</button>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#FAFAFB;padding:40px 64px;">
+        <div style="background:#fff;border-radius:12px;box-shadow:0px 2px 14px rgba(58,57,68,0.2);width:480px;max-width:100%;padding:40px 40px 40px;display:flex;flex-direction:column;gap:16px;align-items:stretch;">
+          <div style="display:flex;justify-content:center;padding:0 0 16px;overflow:hidden;height:176px;">
+            <img src=":assets/_moz-accounts-illustrations_default.svg" alt="Sync illustration" style="height:190px;width:auto;margin-top:-40px;margin-left:-8px;">
+          </div>
+          <div style="text-align:center;display:flex;flex-direction:column;gap:4px;">
+            <p style="font-family:Metropolis,'Inter',system-ui,sans-serif;font-size:22px;font-weight:700;color:#15141A;line-height:1.5;margin:0;">Approve sign-in to sync devices</p>
+          </div>
+          <div style="background:#fff;border:1px solid #E8E8E8;border-radius:12px;padding:16px;text-align:center;display:flex;flex-direction:column;gap:4px;">
+            <p style="font-family:'Inter',system-ui,sans-serif;font-size:14px;font-weight:400;color:#15141A;line-height:1.5;margin:0;">${MOCK_EMAIL}</p>
+            <p style="font-family:'Inter',system-ui,sans-serif;font-size:14px;font-weight:400;color:#15141A;line-height:1.5;margin:0;">Laurels-iPhone 16 &middot; Firefox on iOS</p>
+            <p style="font-family:'Inter',system-ui,sans-serif;font-size:14px;font-weight:400;color:#15141A;line-height:1.5;margin:0;">Portland, Oregon, United States</p>
+          </div>
+          <button class="btn btn-filled" onclick="approveDevice()" style="width:100%;padding:16px 20px;margin:0;">Yes, approve device</button>
+          <p style="text-align:center;font-family:'Inter',system-ui,sans-serif;font-size:12px;font-weight:400;color:#32313C;line-height:1.5;margin:0;">If this wasn't you, <a href="#" style="color:#0060DF;text-decoration:underline;">change your password</a></p>
         </div>
       </div>`,
 
     'success': () => `
-      <div class="state-content">
-        <h2>Your device is connected</h2>
-        <div class="check">&#10003;</div>
-        <button class="link-btn">Manage devices</button>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#FAFAFB;padding:40px 64px;">
+        <div style="background:#fff;border-radius:12px;box-shadow:0px 2px 14px rgba(58,57,68,0.2);width:480px;max-width:100%;padding:40px 40px 40px;display:flex;flex-direction:column;gap:32px;align-items:stretch;">
+          <div style="display:flex;justify-content:center;">
+            <img src=":assets/_moz-accounts-illustrations_connected.svg" alt="Connected illustration" style="height:200px;width:auto;">
+          </div>
+          <div style="text-align:center;display:flex;flex-direction:column;gap:4px;">
+            <p style="font-family:Metropolis,'Inter',system-ui,sans-serif;font-size:22px;font-weight:700;color:#15141A;line-height:1.5;margin:0;">Device connected!</p>
+            <p style="font-family:'Inter',system-ui,sans-serif;font-size:16px;font-weight:400;color:#32313C;line-height:1.5;margin:0;">You're now syncing. Access your tabs, passwords, and bookmarks anywhere you're signed in.</p>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:24px;">
+            <button class="btn btn-filled" style="width:100%;padding:16px 24px;margin:0;">Manage devices</button>
+            <a href="#" style="font-family:'Inter',system-ui,sans-serif;font-size:14px;font-weight:400;color:#0060DF;text-decoration:underline;text-align:center;">Manage sync</a>
+          </div>
+        </div>
       </div>`,
 
-    'expired': () => `
-      <div class="state-content">
-        <h2>This code expired</h2>
-        <div class="warn">!</div>
-        <button onclick="refreshQR()">Refresh QR</button>
+    'timeout': () => `
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#FAFAFB;padding:40px 64px;">
+        <div style="background:#fff;border-radius:12px;box-shadow:0px 2px 14px rgba(58,57,68,0.2);width:480px;max-width:100%;padding:40px 40px 40px;display:flex;flex-direction:column;gap:32px;align-items:center;">
+          <div style="display:flex;justify-content:center;padding:0 0 16px;">
+            <img src=":assets/QR_code.svg" alt="QR code expired" style="height:200px;width:auto;">
+          </div>
+          <div style="text-align:center;display:flex;flex-direction:column;gap:4px;width:100%;">
+            <p style="font-family:Metropolis,'Inter',system-ui,sans-serif;font-size:22px;font-weight:700;color:#15141A;line-height:1.5;margin:0;">Code expired</p>
+            <p style="font-family:'Inter',system-ui,sans-serif;font-size:14px;font-weight:400;color:#32313C;line-height:1.5;margin:0;">To continue, generate a new code and scan it again</p>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:24px;width:100%;align-items:center;">
+            <button class="btn btn-filled" onclick="tryAgainDesktop()" style="width:100%;padding:16px;margin:0;">Generate a new code</button>
+            <a href="#" onclick="cancelApproval();return false;" style="font-family:'Inter',system-ui,sans-serif;font-size:14px;font-weight:400;color:#15141A;text-decoration:underline;text-align:center;">Cancel pairing</a>
+          </div>
+        </div>
+      </div>`,
+
+    'empty': () => `
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+        <button class="btn btn-filled" onclick="navigateToPair()" style="padding:16px 32px;margin:0;">Navigate to firefox.com/pair</button>
       </div>`,
   };
 
   // --- Mobile renderers ---
 
-  const mobileRenderers = {
-    'idle': () => `
-      <div class="state-content" style="padding:0; width:100%;">
+  function cameraViewfinder(btnLabel, btnAction) {
+    return `
+      <div style="display:flex;flex-direction:column;flex:1;">
         <div class="camera-viewfinder">
           <div class="scan-frame">
             <div class="corner tl"></div>
@@ -703,142 +1243,362 @@
             <div class="corner bl"></div>
             <div class="corner br"></div>
           </div>
-          <div class="scan-line"></div>
           <div class="camera-label">Point at QR code</div>
         </div>
         <div class="camera-bottom-bar">
-          <button class="primary" onclick="simulateScan()">Simulate scan</button>
+          <button class="btn btn-filled" onclick="${btnAction}">${btnLabel}</button>
+        </div>
+      </div>`;
+  }
+
+  // --- Screenshot helper ---
+  function screenshotScreen(imgFile, btnAction) {
+    return `
+      <div style="flex:1;position:relative;overflow:hidden;cursor:pointer;" onclick="${btnAction}">
+        <img src=":assets/mobile/${imgFile}" style="height:102%;width:102%;object-fit:cover;display:block;pointer-events:none;margin:-1% 0 0 -1%;">
+      </div>`;
+  }
+
+  const mobileRenderers = {
+    'idle': () => cameraViewfinder('Simulate scan', 'simulateScan()'),
+
+    'mobile-first': () => `
+      <div style="flex:1;display:flex;flex-direction:column;background:#fafafd;">
+        <div style="flex:1;display:flex;flex-direction:column;padding:16px 10px;gap:16px;">
+          <div style="display:flex;justify-content:center;">
+            <img src=":assets/mozilla-product-logo.svg" alt="Mozilla" style="height:18px;display:block;">
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:16px;padding:0 6px;">
+            <div style="display:flex;justify-content:center;padding:16px 0;">
+              <img src=":assets/Sync.svg" alt="Sync illustration" style="height:118px;width:auto;">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:11px;text-align:center;align-items:center;">
+              <p style="font-family:-apple-system,'SF Pro',system-ui,sans-serif;font-size:15px;font-weight:700;color:#15141a;line-height:1.5;margin:0;">Open Firefox on your computer to pair this device</p>
+              <p style="font-family:-apple-system,'SF Pro',system-ui,sans-serif;font-size:11px;font-weight:400;color:#15141a;line-height:1.5;margin:0;">Visit firefox.com/pair and follow the instructions to connect your mobile device.</p>
+              <a href="#" style="font-family:-apple-system,'SF Pro',system-ui,sans-serif;font-size:11px;font-weight:400;color:#0060DF;text-decoration:underline;">Learn more</a>
+            </div>
+          </div>
+        </div>
+        <img src=":assets/iOS18 - Address Toolbar.svg" alt="iOS Toolbar" style="width:100%;display:block;">
+      </div>`,
+
+    // --- "No Firefox" flow: screenshot-based screens ---
+
+    'browser-redirect': () => screenshotScreen('Default browser.png', 'openAppStore()'),
+
+    'app-store': () => screenshotScreen('App store.png', 'downloadFirefox()'),
+
+    'onboarding': () => screenshotScreen('OMC - 1.png', 'onboardingNext()'),
+
+    'onboarding-2': () => screenshotScreen('OMC - 2.png', 'onboarding2Next()'),
+
+    'onboarding-3': () => screenshotScreen('OMC - 3.png', 'onboarding3Next()'),
+
+    'choose-address-bar': () => screenshotScreen('OMC - 4.png', 'chooseAddressBarNext()'),
+
+    'sync-promo': () => screenshotScreen('OMC - 5.png', 'startSyncing()'),
+
+    'sync-modal': () => screenshotScreen('Sync modal.png', 'allowCamera()'),
+
+    'allow-camera': () => screenshotScreen('Allow camera.png', 'readyToScan()'),
+
+    'fx-camera': () => cameraViewfinder('Simulate scan', 'fxCameraScan()'),
+
+    // --- FxA Design System built screens ---
+
+    'confirm': () => `
+      <div style="display:flex;align-items:center;padding:8px 13px;background:#ffffff;border-bottom:0.5px solid #e0e0e6;">
+        <span style="font-family:-apple-system,'SF Pro',system-ui,sans-serif;font-size:14px;color:#0060df;cursor:pointer;">&#8249; Sync and Save Data</span>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;background:#fafafd;border-radius:0 0 8px 8px;padding:16px 10px;gap:16px;">
+        <div style="display:flex;justify-content:center;">
+          <img src=":assets/mozilla-product-logo.svg" alt="Mozilla" style="height:18px;display:block;">
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:11px;align-items:center;min-height:0;">
+          <div style="display:flex;justify-content:center;padding:22px 0;overflow:hidden;">
+            <img src=":assets/_moz-accounts-illustrations_default.svg" alt="Sync illustration" style="height:118px;width:auto;margin-top:-15px;margin-left:-8px;">
+          </div>
+          <div style="width:100%;display:flex;flex-direction:column;gap:3px;">
+            <p style="font-family:-apple-system,'SF Pro',system-ui,sans-serif;font-size:15px;font-weight:700;color:#15141a;text-align:center;line-height:1.5;margin:0;">Confirm pairing this device to your account</p>
+          </div>
+          <div style="background:#fff;border:1px solid #e8e8e8;border-radius:8px;padding:13px 10px;width:100%;display:flex;flex-direction:column;align-items:center;">
+            <div style="font-family:-apple-system,'SF Pro',system-ui,sans-serif;font-size:11px;font-weight:400;color:#15141a;text-align:center;line-height:1.5;width:100%;display:flex;flex-direction:column;gap:3px;">
+              <p style="margin:0;">${MOCK_EMAIL}</p>
+              <p style="margin:0;">Laurels-MacBook-Pro-2</p>
+              <p style="margin:0;">Firefox on macOS</p>
+            </div>
+          </div>
+          <div style="padding:10px 0;width:100%;display:flex;flex-direction:column;gap:10px;">
+            <button onclick="mobileConfirm()" style="font-family:-apple-system,'SF Pro',system-ui,sans-serif;width:100%;height:37px;background:#0060df;border:1px solid #0250BB;color:#fff;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;line-height:16px;">Confirm pairing</button>
+            <button onclick="mobileCancel()" style="font-family:-apple-system,'SF Pro',system-ui,sans-serif;width:100%;height:37px;background:transparent;border:none;border-radius:3px;font-size:11px;font-weight:400;color:#15141a;text-decoration:underline;cursor:pointer;line-height:1.5;">Cancel</button>
+          </div>
         </div>
       </div>`,
 
-    'app-store': () => `
-      <div class="state-content">
-        <h2>Get Firefox</h2>
-        <p>Install Firefox to continue</p>
-        <button class="primary" onclick="installFirefox()">Install Firefox</button>
+    'waiting-approval': () => `
+      <div style="display:flex;align-items:center;padding:8px 13px;background:#ffffff;border-bottom:0.5px solid #e0e0e6;">
+        <span style="font-family:-apple-system,'SF Pro',system-ui,sans-serif;font-size:14px;color:#0060df;cursor:pointer;">&#8249; Sync and Save Data</span>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;background:#fafafd;border-radius:0 0 8px 8px;padding:16px 10px;gap:16px;">
+        <div style="display:flex;justify-content:center;">
+          <img src=":assets/mozilla-product-logo.svg" alt="Mozilla" style="height:18px;display:block;">
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:11px;align-items:center;min-height:0;">
+          <div style="display:flex;justify-content:center;padding:22px 0;overflow:hidden;">
+            <img src=":assets/_moz-accounts-illustrations_default.svg" alt="Sync illustration" style="height:118px;width:auto;margin-top:-15px;margin-left:-8px;">
+          </div>
+          <div style="width:100%;display:flex;flex-direction:column;gap:3px;">
+            <p style="font-family:-apple-system,'SF Pro',system-ui,sans-serif;font-size:15px;font-weight:700;color:#15141a;text-align:center;line-height:1.5;margin:0;">Approve on your other device</p>
+            <p style="font-family:-apple-system,'SF Pro',system-ui,sans-serif;font-size:11px;font-weight:400;color:#15141a;text-align:center;line-height:1.5;margin:0;">Go back to your computer to approve this sign-in and finish pairing.</p>
+          </div>
+        </div>
       </div>`,
 
-    'finish-on-desktop': () => `
+    // --- Shared states ---
+
+    'success': () => `
+      <div style="flex:1;display:flex;flex-direction:column;background:#fafafd;">
+        <div style="flex:1;display:flex;flex-direction:column;padding:16px 10px;gap:16px;">
+          <div style="display:flex;justify-content:center;">
+            <img src=":assets/mozilla-product-logo.svg" alt="Mozilla" style="height:18px;display:block;">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;padding:0 6px;flex:1;">
+            <div style="display:flex;flex-direction:column;align-items:center;padding:16px 0;">
+              <img src=":assets/_moz-accounts-illustrations_connected.svg" alt="Connected" style="height:118px;width:auto;">
+            </div>
+            <div style="text-align:center;display:flex;flex-direction:column;gap:3px;padding:0 0 4px;">
+              <p style="font-family:-apple-system,'SF Pro',system-ui,sans-serif;font-size:15px;font-weight:700;color:#15141a;text-align:center;line-height:1.5;margin:0;">Device connected!</p>
+              <p style="font-family:-apple-system,'SF Pro',system-ui,sans-serif;font-size:11px;font-weight:400;color:#15141a;text-align:center;line-height:1.5;margin:0;">You're now syncing. Access your tabs, passwords, and bookmarks anywhere you're signed in.</p>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:11px;">
+              <button style="font-family:-apple-system,'SF Pro',system-ui,sans-serif;width:100%;height:38px;background:#0060df;border:1px solid #0250BB;color:#fff;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;line-height:16px;">Manage devices</button>
+              <a href="#" style="font-family:'Inter',system-ui,sans-serif;font-size:11px;font-weight:400;color:#0060DF;text-decoration:underline;text-align:center;">Manage sync</a>
+            </div>
+          </div>
+        </div>
+        <img src=":assets/iOS18 - Address Toolbar.svg" alt="iOS Toolbar" style="width:100%;display:block;">
+      </div>`,
+
+    'timeout': () => `
+      <div style="flex:1;display:flex;flex-direction:column;background:#fafafd;">
+        <div style="flex:1;display:flex;flex-direction:column;padding:16px 10px;gap:16px;">
+          <div style="display:flex;justify-content:center;">
+            <img src=":assets/mozilla-product-logo.svg" alt="Mozilla" style="height:18px;display:block;">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:16px;padding:0 6px;flex:1;align-items:center;">
+            <div style="display:flex;justify-content:center;padding:16px 0;width:100%;">
+              <img src=":assets/nova/timeout.svg" alt="Connection timed out" style="width:160px;height:128px;display:block;">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center;width:100%;padding:8px 0;">
+              <p style="font-family:-apple-system,'SF Pro',system-ui,sans-serif;font-size:15px;font-weight:700;color:#15141a;line-height:1.5;margin:0;">Connection timed out</p>
+              <p style="font-family:-apple-system,'SF Pro',system-ui,sans-serif;font-size:11px;font-weight:400;color:#15141a;line-height:1.5;margin:0;">Visit firefox.com/pair and follow the instructions to connect your mobile device.</p>
+              <a href="#" style="font-family:-apple-system,'SF Pro',system-ui,sans-serif;font-size:11px;font-weight:400;color:#0060df;line-height:1.5;text-decoration:underline;margin-top:8px;">Learn more</a>
+            </div>
+          </div>
+        </div>
+        <img src=":assets/iOS18 - Address Toolbar.svg" alt="iOS Toolbar" style="width:100%;display:block;">
+      </div>`,
+
+    'scan-fail': () => `
       <div class="state-content">
-        <h2>Finish setup on your computer</h2>
-        <div class="spinner"></div>
-        <p>Approve this device on your computer</p>
+        <h2>Couldn\u2019t complete scan</h2>
+        <div class="icon-circle warning"><span class="material-icons-outlined">error_outline</span></div>
+        <p>The scan failed or the connection timed out</p>
+        <button class="btn btn-filled" onclick="readyToScan()">Try again</button>
+      </div>`,
+
+    'abandon': () => `
+      <div class="state-content">
+        <h2>Pairing cancelled</h2>
+        <div class="icon-circle info"><span class="material-icons-outlined">close</span></div>
+        <p>You can pair your devices later from Firefox settings</p>
+      </div>`,
+  };
+
+  // --- Nova variant renderers ---
+  // Visual tokens sourced from /Users/lbybee/Documents/code/nova/styles.md and components.md (Light mode).
+
+  function novaCameraViewfinder(btnLabel, btnAction) {
+    return `
+      <div style="display:flex;flex-direction:column;flex:1;">
+        <div class="camera-viewfinder">
+          <div class="scan-frame">
+            <div class="corner tl"></div>
+            <div class="corner tr"></div>
+            <div class="corner bl"></div>
+            <div class="corner br"></div>
+          </div>
+          <div class="camera-label">Point at QR code</div>
+        </div>
+        <div class="camera-bottom-bar">
+          <button class="nova-btn nova-btn--primary" onclick="${btnAction}">${btnLabel}</button>
+        </div>
+      </div>`;
+  }
+
+  const novaDesktopRenderers = {
+    'qr-shown': () => {
+      const isPromo = document.getElementById('entrypoint-select').value === 'auth-promo';
+      return `
+      <div class="nova-surface" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 64px;gap:32px;">
+          <div class="nova-card" style="width:480px;max-width:100%;padding:24px 40px 0;display:flex;flex-direction:column;align-items:center;gap:24px;">
+            <img src=":assets/nova/FxLogo.svg" alt="Firefox" style="height:32px;width:auto;display:block;">
+            <div style="text-align:center;width:360px;max-width:100%;display:flex;flex-direction:column;gap:8px;">
+              <p class="nova-heading--xl">Connect your phone or tablet</p>
+              <p class="nova-body--deemph">Start syncing your saved passwords, tabs, browsing history and more across all your signed in devices.</p>
+            </div>
+            <div style="position:relative;width:540px;max-width:112%;overflow:hidden;margin-top:16px;">
+              <img src=":assets/Kit QR.svg" alt="QR Code" style="width:100%;display:block;">
+              <p class="nova-body--deemph" style="position:absolute;bottom:calc(18% - 16px);left:50%;transform:translateX(-50%);text-align:center;width:240px;">Scan the code to download<br>Firefox on your mobile device.</p>
+              <a class="nova-link" href="https://support.mozilla.org/en-US/kb/how-do-i-set-sync-my-computer#w_connect-additional-devices-to-sync" target="_blank" style="position:absolute;bottom:calc(18% - 40px);left:50%;transform:translateX(-50%);">Trouble scanning?</a>
+            </div>
+          </div>
+          ${isPromo ? '<button class="nova-btn nova-btn--default" style="display:inline-flex;align-items:center;gap:8px;">Skip for now <span aria-hidden="true" style="font-size:16px;line-height:1;">&rsaquo;</span></button>' : ''}
+      </div>`;
+    },
+
+    'scan-detected': () => `
+      <div class="nova-surface" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 64px;">
+        <div class="nova-card" style="width:456px;max-width:100%;min-height:400px;padding:40px;display:flex;flex-direction:column;gap:24px;align-items:center;">
+          <img src=":assets/nova/Mobile_go%20to.svg" alt="Phone notification" style="width:160px;height:160px;display:block;">
+          <div style="text-align:center;display:flex;flex-direction:column;gap:8px;width:100%;">
+            <p class="nova-heading--xl">Continue on mobile</p>
+            <p class="nova-body--deemph">Follow the prompts on your mobile device to continue pairing this device to your account</p>
+          </div>
+          <a class="nova-link nova-link--lg" href="#" onclick="cancelApproval();return false;" style="text-align:center;">Cancel pairing</a>
+        </div>
+      </div>`,
+
+    'approval': () => `
+      <div class="nova-surface" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 64px;">
+        <div class="nova-card" style="width:456px;max-width:100%;padding:40px;display:flex;flex-direction:column;gap:20px;align-items:stretch;">
+          <div style="display:flex;justify-content:center;">
+            <img src=":assets/nova/Sync_v2.svg" alt="Sync illustration" style="width:160px;height:160px;display:block;">
+          </div>
+          <div style="text-align:center;display:flex;flex-direction:column;gap:8px;">
+            <p class="nova-heading--xl">Approve sign-in to sync devices</p>
+          </div>
+          <div class="nova-inset" style="text-align:center;display:flex;flex-direction:column;gap:4px;">
+            <p class="nova-body">${MOCK_EMAIL}</p>
+            <p class="nova-body">Laurels-iPhone 16 &middot; Firefox on iOS</p>
+            <p class="nova-body">Portland, Oregon, United States</p>
+          </div>
+          <button class="nova-btn nova-btn--primary" onclick="approveDevice()" style="width:100%;">Yes, approve device</button>
+          <p class="nova-body--deemph" style="text-align:center;">If this wasn't you, <a class="nova-link" href="#">change your password</a></p>
+        </div>
       </div>`,
 
     'success': () => `
-      <div class="state-content">
-        <h2>Your device is connected</h2>
-        <div class="check">&#10003;</div>
-        <p>Sync is on</p>
-      </div>`,
-
-    'resume-failed': () => `
-      <div class="state-content">
-        <h2>We couldn't continue the connection</h2>
-        <div class="warn">!</div>
-        <div>
-          <button onclick="tryAgain()">Try again</button>
-          <button onclick="scanAgain()">Scan again</button>
+      <div class="nova-surface" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 64px;">
+        <div class="nova-card" style="width:456px;max-width:100%;padding:40px;display:flex;flex-direction:column;gap:24px;align-items:stretch;">
+          <div style="display:flex;justify-content:center;">
+            <img src=":assets/nova/Success.svg" alt="Connected illustration" style="width:160px;height:160px;display:block;">
+          </div>
+          <div style="text-align:center;display:flex;flex-direction:column;gap:8px;">
+            <p class="nova-heading--xl">Device connected!</p>
+            <p class="nova-body--deemph">You're now syncing. Access your tabs, passwords, and bookmarks anywhere you're signed in.</p>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:20px;">
+            <button class="nova-btn nova-btn--primary" style="width:100%;">Manage devices</button>
+            <a class="nova-link nova-link--lg" href="#" style="text-align:center;">Manage sync</a>
+          </div>
         </div>
       </div>`,
 
-    'session-expired': () => `
-      <div class="state-content">
-        <h2>This connection expired</h2>
-        <div class="warn">!</div>
-        <button onclick="scanAgain()">Scan again</button>
+    'timeout': () => `
+      <div class="nova-surface" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 64px;">
+        <div class="nova-card" style="width:456px;max-width:100%;padding:40px;display:flex;flex-direction:column;gap:24px;align-items:center;border-radius:24px;">
+          <img src=":assets/nova/NewQR.svg" alt="QR code expired" style="width:160px;height:160px;display:block;">
+          <div style="text-align:center;display:flex;flex-direction:column;gap:8px;width:100%;">
+            <p class="nova-heading--xl">Code expired</p>
+            <p class="nova-body--deemph">To continue, generate a new code and scan it again</p>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:16px;padding:16px 0;width:100%;align-items:stretch;">
+            <button class="nova-btn nova-btn--primary" onclick="tryAgainDesktop()" style="width:100%;">Generate new code</button>
+            <a class="nova-link nova-link--lg" href="#" onclick="cancelApproval();return false;" style="text-align:center;color:#161423;">Cancel</a>
+          </div>
+        </div>
       </div>`,
   };
 
-  // --- Stepper ---
+  const novaMobileRenderers = {
+    'idle': () => cameraViewfinder('Simulate scan', 'simulateScan()'),
 
-  const stepperSteps = ['Start', 'QR', 'Open', 'Connect', 'Approve', 'Done'];
+    'confirm': () => `
+      <div class="nova-modal-header" style="display:flex;align-items:center;padding:8px 13px;background:#ffffff;border-bottom:1px solid #e8e7ec;">
+        <span class="nova-link" style="text-decoration:none;cursor:pointer;">&#8249; Sync and Save Data</span>
+      </div>
+      <div class="nova-surface" style="flex:1;display:flex;flex-direction:column;border-radius:0 0 12px 12px;padding:16px 10px;gap:8px;">
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;min-height:0;">
+          <div style="display:flex;justify-content:center;padding:8px 0;">
+            <img src=":assets/nova/Sync_v2.svg" alt="Sync illustration" style="width:120px;height:120px;display:block;">
+          </div>
+          <div style="width:100%;display:flex;flex-direction:column;gap:12px;padding-bottom:8px;">
+            <p class="nova-heading" style="text-align:center;">Confirm pairing this device to your account</p>
+          </div>
+          <div class="nova-inset" style="width:100%;display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <p class="nova-body" style="text-align:center;">${MOCK_EMAIL}</p>
+            <p class="nova-body" style="text-align:center;">Laurels-MacBook-Pro-2</p>
+            <p class="nova-body" style="text-align:center;">Firefox on macOS</p>
+          </div>
+          <div style="width:100%;display:flex;flex-direction:column;gap:12px;padding:8px 0;">
+            <button class="nova-btn nova-btn--primary" onclick="mobileConfirm()" style="width:100%;">Confirm pairing</button>
+            <a class="nova-link nova-link--lg" href="#" onclick="mobileCancel();return false;" style="text-align:center;color:#161423;">Cancel</a>
+          </div>
+        </div>
+      </div>`,
 
-  // Map combined state to step number (1-indexed)
-  function getCurrentStep() {
-    // Use the "furthest along" of desktop/mobile to determine step
-    const stateToStep = {
-      // Desktop states
-      'signup-intro': 1,
-      'qr-shown': 2,
-      'expired': 2,
-      'waiting': 4,
-      'approval': 5,
-      // Mobile states
-      'idle': 2,
-      'app-store': 3,
-      'resume-failed': 4,
-      'session-expired': 4,
-      'finish-on-desktop': 5,
-      'success': 6,
-    };
-    const d = stateToStep[desktopState] || 1;
-    const m = stateToStep[mobileState] || 1;
-    return Math.max(d, m);
-  }
+    'waiting-approval': () => `
+      <div class="nova-modal-header" style="display:flex;align-items:center;padding:8px 13px;background:#ffffff;border-bottom:1px solid #e8e7ec;">
+        <span class="nova-link" style="text-decoration:none;cursor:pointer;">&#8249; Sync and Save Data</span>
+      </div>
+      <div class="nova-surface" style="flex:1;display:flex;flex-direction:column;border-radius:0 0 12px 12px;padding:16px 10px;gap:8px;">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;min-height:0;gap:8px;">
+          <div style="display:flex;justify-content:center;padding:8px 0;">
+            <img src=":assets/nova/Computer-check.svg?v=2" alt="Computer" style="width:120px;height:120px;display:block;">
+          </div>
+          <div style="width:100%;display:flex;flex-direction:column;gap:12px;">
+            <p class="nova-heading" style="text-align:center;">Approve on your other device</p>
+            <p class="nova-body--deemph" style="text-align:center;">Go back to your computer to approve this sign-in and finish pairing.</p>
+          </div>
+        </div>
+      </div>`,
 
-  function isErrorState() {
-    return ['expired'].includes(desktopState) ||
-           ['resume-failed', 'session-expired'].includes(mobileState);
-  }
+    'success': () => `
+      <div class="nova-surface" style="flex:1;display:flex;flex-direction:column;padding:16px 10px;gap:8px;">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;min-height:0;">
+          <div style="display:flex;justify-content:center;padding:8px 0;">
+            <img src=":assets/nova/Success.svg" alt="Connected" style="width:120px;height:120px;display:block;">
+          </div>
+          <div style="width:100%;display:flex;flex-direction:column;gap:12px;">
+            <p class="nova-heading" style="text-align:center;">Device connected!</p>
+            <p class="nova-body--deemph" style="text-align:center;">You're now syncing. Access your tabs, passwords, and bookmarks anywhere you're signed in.</p>
+          </div>
+          <div style="width:100%;display:flex;flex-direction:column;gap:12px;padding:8px 0;">
+            <button class="nova-btn nova-btn--primary" style="width:100%;">Manage devices</button>
+            <a class="nova-link nova-link--lg" href="#" style="text-align:center;">Manage sync</a>
+          </div>
+        </div>
+      </div>`,
 
-  // Canonical happy-path states for each step
-  function isAppInstalled() {
-    return document.getElementById('app-installed-select').value === 'yes';
-  }
-
-  const stepStates = {
-    1: () => ({ desktop: getDefaultDesktopState(), mobile: 'idle' }),
-    2: () => ({ desktop: 'qr-shown', mobile: 'idle' }),
-    3: () => ({ desktop: 'qr-shown', mobile: 'app-store' }),
-    4: () => ({ desktop: 'waiting', mobile: 'finish-on-desktop' }),
-    5: () => ({ desktop: 'approval', mobile: 'finish-on-desktop' }),
-    6: () => ({ desktop: 'success', mobile: 'success' }),
+    'timeout': () => `
+      <div class="nova-surface" style="flex:1;display:flex;flex-direction:column;padding:16px 10px;gap:8px;">
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;min-height:0;">
+          <div style="display:flex;justify-content:center;padding:8px 0;">
+            <img src=":assets/nova/Sync-failure.svg?v=2" alt="Connection timed out" style="width:120px;height:120px;display:block;">
+          </div>
+          <div style="width:100%;display:flex;flex-direction:column;gap:12px;">
+            <p class="nova-heading" style="text-align:center;">Connection timed out</p>
+            <p class="nova-body--deemph" style="text-align:center;">Visit firefox.com/pair and follow the instructions to connect your mobile device.</p>
+            <a class="nova-link nova-link--lg" href="#" style="text-align:center;color:#161423;">Learn more</a>
+          </div>
+        </div>
+      </div>`,
   };
 
-  function goToStep(num) {
-    clearTimers();
-    clearLog();
-    const s = stepStates[num]();
-    desktopState = s.desktop;
-    mobileState = s.mobile;
-    const stepLogs = {
-      1: ['Pairing session created'],
-      2: ['Pairing session created', 'Waiting for phone to connect'],
-      3: ['QR code scanned', 'Redirecting to app store'],
-      4: ['Pairing session found', 'Connecting devices'],
-      5: ['Connecting devices', 'Waiting for desktop approval', 'Approval requested on desktop'],
-      6: ['Device approved', 'Pairing complete'],
-    };
-    logSystem(...(stepLogs[num] || []));
-    render();
-  }
-
-  function renderStepper() {
-    const current = getCurrentStep();
-    const error = isErrorState();
-    const el = document.getElementById('stepper');
-    let html = '<div class="stepper-line"></div>';
-    stepperSteps.forEach((name, i) => {
-      const num = i + 1;
-      let cls = '';
-      let content = num;
-      if (num < current) {
-        cls = 'completed';
-        content = '\u2713';
-      }
-      if (num === current) {
-        cls = error ? 'error' : 'current';
-        if (error) content = '!';
-      }
-      html += `<div class="stepper-step ${cls}" onclick="goToStep(${num})">
-        <div class="stepper-circle">${content}</div>
-        <div class="stepper-label">${name}</div>
-      </div>`;
-    });
-    el.innerHTML = html;
-    document.getElementById('stepper-status').textContent =
-      `Step ${current} of 6 \u00b7 ${stepperSteps[current - 1]}`;
+  function pickRenderer(fxaMap, novaMap, state, variant) {
+    if (variant === 'nova' && novaMap[state]) return novaMap[state];
+    return fxaMap[state];
   }
 
   // --- Render ---
@@ -849,134 +1609,249 @@
   function render() {
     const desktopEl = document.getElementById('desktop-content');
     const mobileEl = document.getElementById('mobile-content');
+    const variant = document.getElementById('variant-select').value;
+    document.querySelector('.app').classList.toggle('variant-nova', variant === 'nova');
 
     if (desktopState !== lastDesktopState) {
-      desktopEl.innerHTML = desktopRenderers[desktopState]();
+      desktopEl.innerHTML = pickRenderer(desktopRenderers, novaDesktopRenderers, desktopState, variant)();
       const sc = desktopEl.querySelector('.state-content');
       if (sc) sc.classList.add('animate-in');
       lastDesktopState = desktopState;
+      const urlMap = {
+        'qr-shown': 'https://accounts.firefox.com/pair',
+        'scan-detected': 'https://accounts.firefox.com/pair',
+        'approval': 'https://accounts.firefox.com/pair/auth/allow',
+        'success': 'https://accounts.firefox.com/pair/auth/complete',
+        'timeout': 'https://accounts.firefox.com/pair/expired',
+        'empty': '',
+      };
+      document.getElementById('browser-url').textContent = desktopState in urlMap ? urlMap[desktopState] : 'https://accounts.firefox.com/pair';
+      const tabMap = {
+        'qr-shown': 'Connect your phone or tablet',
+        'scan-detected': 'Connect your phone or tablet',
+        'empty': 'New Tab',
+        'approval': 'Approve device sign in',
+        'success': 'Device connected',
+        'timeout': 'Connect your phone or tablet',
+      };
+      document.getElementById('browser-tab-text').textContent = tabMap[desktopState] || 'Connect your phone or tablet';
+      document.querySelector('.moz-header').style.display = desktopState === 'empty' ? 'none' : '';
+      document.querySelector('.browser-nav').style.display = desktopState === 'empty' ? 'none' : '';
     }
 
     if (mobileState !== lastMobileState) {
-      mobileEl.innerHTML = mobileRenderers[mobileState]();
+      mobileEl.innerHTML = pickRenderer(mobileRenderers, novaMobileRenderers, mobileState, variant)();
       const sc = mobileEl.querySelector('.state-content');
       if (sc) sc.classList.add('animate-in');
       lastMobileState = mobileState;
     }
+
     const mobileAppContext = {
       'idle': 'Camera',
+      'browser-redirect': 'Safari',
       'app-store': 'App Store',
-      'finish-on-desktop': 'Firefox',
+      'onboarding': 'Firefox',
+      'onboarding-2': 'Firefox',
+      'onboarding-3': 'Firefox',
+      'choose-address-bar': 'Firefox',
+      'sync-promo': 'Firefox',
+      'sync-modal': 'Firefox',
+      'allow-camera': 'Firefox',
+      'fx-camera': 'Firefox Camera',
+      'confirm': 'Firefox',
+      'waiting-approval': 'Firefox',
       'success': 'Firefox',
-      'resume-failed': 'Firefox',
-      'session-expired': 'Firefox',
+      'timeout': 'Firefox',
+      'scan-fail': 'Firefox',
+      'abandon': '',
     };
-    document.getElementById('mobile-app-context').textContent =
-      mobileAppContext[mobileState] || '';
-    renderStepper();
+    const ctx = mobileAppContext[mobileState] || '';
+    const appBar = document.getElementById('mobile-app-context');
+    if (ctx) {
+      appBar.textContent = ctx;
+      appBar.style.display = '';
+    } else {
+      appBar.style.display = 'none';
+    }
+
+    // Hide status bar & notch on screens where the screenshot includes them
+    document.getElementById('phone-notch').style.display = 'none';
+    const showStatusBar = ['confirm', 'waiting-approval', 'success', 'mobile-first', 'timeout'];
+    document.getElementById('phone-status-bar').style.display = showStatusBar.includes(mobileState) ? '' : 'none';
   }
 
   // --- Actions ---
 
-  function showQRFromIntro() {
-    logSystem('Pairing session created', 'Waiting for phone to connect');
-    setState('qr-shown', undefined);
-  }
-
   function simulateScan() {
     if (isAppInstalled()) {
-      logSystem('QR code scanned', 'Firefox opened on mobile', 'Attempting to resume pairing session');
-      setState(undefined, 'finish-on-desktop');
-      setTimeout(() => {
-        logSystem('Pairing session found', 'Connecting devices');
-        setState('waiting', undefined);
-      }, 400);
-      waitingTimer = setTimeout(() => {
-        logSystem('Waiting for desktop approval', 'Approval requested on desktop');
-        setState('approval', undefined);
-      }, 1800);
+      // First scan intentionally flips both sides instantly — no delay.
+      setState('scan-detected', 'confirm', 'QR code scanned', 'Mobile scan detected', 'Pairing channel connected');
     } else {
-      logSystem('QR code scanned', 'Redirecting to app store');
-      setState(undefined, 'app-store');
+      setState(undefined, 'browser-redirect', 'QR code scanned', 'Firefox not detected on mobile', 'Safari opened redirect page');
     }
   }
 
-  function installFirefox() {
-    logSystem('Firefox installed and opened', 'Attempting to resume pairing session');
-    setState(undefined, 'finish-on-desktop');
-    setTimeout(() => {
-      logSystem('Pairing session found', 'Connecting devices');
-      setState('waiting', undefined);
-    }, 400);
-    waitingTimer = setTimeout(() => {
-      logSystem('Waiting for desktop approval', 'Approval requested on desktop');
-      setState('approval', undefined);
-    }, 1800);
+  function openAppStore() {
+    setState(undefined, 'app-store', 'User tapped Open App Store');
+  }
+
+  function downloadFirefox() {
+    setState(undefined, 'onboarding', 'Firefox downloaded', 'Opening Firefox');
+  }
+
+  function onboardingNext() {
+    setState(undefined, 'onboarding-2', 'Onboarding: Welcome complete');
+  }
+
+  function onboarding2Next() {
+    setState(undefined, 'onboarding-3', 'Onboarding: Step 2 complete');
+  }
+
+  function onboarding3Next() {
+    setState(undefined, 'choose-address-bar', 'Onboarding: Step 3 complete');
+  }
+
+  function chooseAddressBarNext() {
+    setState(undefined, 'sync-promo', 'Onboarding: Address bar selected');
+  }
+
+  function startSyncing() {
+    setState(undefined, 'sync-modal', 'User chose to start syncing');
+  }
+
+  function allowCamera() {
+    setState(undefined, 'allow-camera', 'Camera permission requested');
+  }
+
+  function readyToScan() {
+    setState(undefined, 'fx-camera', 'Camera access granted', 'Opening Firefox camera to scan QR code');
+  }
+
+  function fxCameraScan() {
+    // Phone reacts to the local scan immediately.
+    setState(undefined, 'confirm', 'QR code scanned via Firefox camera', 'Mobile scan detected');
+    // Desktop catches up after the pairing channel round-trips.
+    addTimer(() => {
+      setState('scan-detected', undefined, 'Pairing channel connected');
+    }, CROSS_DEVICE_DELAY_MS);
+  }
+
+  function mobileConfirm() {
+    mobileConfirmed = true;
+    // Phone reacts to the local tap immediately.
+    setState(undefined, 'waiting-approval', 'Mobile confirmed pairing');
+    // Desktop catches up after the channel round-trip.
+    addTimer(() => {
+      setState('approval', undefined, 'Waiting for desktop approval');
+    }, CROSS_DEVICE_DELAY_MS);
+  }
+
+  function mobileCancel() {
+    clearAllTimers(); clearLog(); mobileConfirmed = false;
+    // Phone resets immediately on the local cancel.
+    setState(undefined, 'idle', 'Pairing cancelled on mobile');
+    // Desktop re-arms the pairing channel after the round-trip.
+    addTimer(() => {
+      setState('qr-shown', undefined, 'Pairing channel created', 'Waiting for phone to scan');
+    }, CROSS_DEVICE_DELAY_MS);
   }
 
   function approveDevice() {
-    clearTimers();
-    logSystem('Device approved', 'Pairing complete');
-    setState('success', 'success');
+    clearAllTimers();
+    // Desktop reacts to the local tap immediately.
+    setState('success', undefined, 'Device approved');
+    // Phone confirms the pairing completion after the round-trip.
+    addTimer(() => {
+      setState(undefined, 'success', 'Pairing complete');
+    }, CROSS_DEVICE_DELAY_MS);
   }
 
   function cancelApproval() {
-    clearTimers();
-    clearLog();
-    logSystem('Pairing session created', 'Waiting for phone to connect');
-    setState('qr-shown', 'idle');
+    clearAllTimers(); clearLog(); mobileConfirmed = false;
+    // Desktop resets immediately on the local cancel.
+    setState('qr-shown', undefined, 'Pairing cancelled on desktop');
+    // Phone re-arms for scanning after the round-trip.
+    addTimer(() => {
+      setState(undefined, 'idle', 'Pairing channel created', 'Waiting for phone to scan');
+    }, CROSS_DEVICE_DELAY_MS);
   }
 
-  function refreshQR() {
-    clearTimers();
-    clearLog();
-    logSystem('Pairing session created', 'Waiting for phone to connect');
-    setState('qr-shown', 'idle');
+  function simulateTimeout() {
+    clearAllTimers();
+    if (desktopState === 'approval' || desktopState === 'scan-detected') {
+      setState('timeout', 'timeout', 'Pairing channel timed out');
+    } else {
+      setState('timeout', undefined, 'Pairing channel timed out');
+    }
   }
 
-  function tryAgain() {
-    logSystem('Attempting to resume pairing session');
-    setState(undefined, 'finish-on-desktop');
-    setTimeout(() => {
-      logSystem('Pairing session found', 'Connecting devices');
-      setState('waiting', undefined);
-    }, 400);
-    waitingTimer = setTimeout(() => {
-      logSystem('Waiting for desktop approval', 'Approval requested on desktop');
-      setState('approval', undefined);
-    }, 1800);
+  function tryAgainDesktop() {
+    clearAllTimers(); clearLog(); mobileConfirmed = false;
+    // Desktop regenerates the code immediately on the local tap.
+    setState('qr-shown', undefined, 'Pairing channel created');
+    // Phone re-arms for scanning after the round-trip.
+    addTimer(() => {
+      setState(undefined, 'idle', 'Waiting for phone to scan');
+    }, CROSS_DEVICE_DELAY_MS);
   }
 
-  function scanAgain() {
-    clearTimers();
-    clearLog();
-    logSystem('Pairing session created', 'Waiting for phone to connect');
-    setState('qr-shown', 'idle');
+  function tryAgainMobile() {
+    clearAllTimers(); clearLog(); mobileConfirmed = false;
+    // Phone re-arms for scanning immediately on the local tap.
+    setState(undefined, 'idle', 'Mobile ready to try again');
+    // Desktop re-arms the pairing channel after the round-trip.
+    addTimer(() => {
+      setState('qr-shown', undefined, 'Pairing channel created', 'Waiting for phone to scan');
+    }, CROSS_DEVICE_DELAY_MS);
   }
 
-  // --- Debug ---
+  function navigateToPair() {
+    setState('qr-shown', 'idle', 'User navigated to firefox.com/pair', 'Pairing channel created', 'Waiting for phone to scan');
+  }
+
+  function abandonPair() {
+    clearAllTimers();
+    setState(undefined, 'abandon', 'User abandoned pairing flow');
+  }
 
   function resetFlow() {
-    clearTimers();
-    clearLog();
-    logSystem('Pairing session created', 'Waiting for phone to connect');
-    setState(getDefaultDesktopState(), 'idle');
+    clearAllTimers(); clearLog(); mobileConfirmed = false;
+    lastDesktopState = null;
+    lastMobileState = null;
+    const mDefault = getDefaultMobileState();
+    if (mDefault === 'mobile-first') {
+      setState(getDefaultDesktopState(), mDefault, 'Mobile-first entrypoint');
+    } else {
+      setState(getDefaultDesktopState(), mDefault, 'Pairing channel created', 'Waiting for phone to scan');
+    }
   }
 
-  function simulateExpired() {
-    clearTimers();
-    logSystem('Pairing session expired');
-    setState('expired', undefined);
+  // Re-render the current desktop/mobile states in the newly picked variant
+  // without touching flow state. The sidebar "Reset" still calls resetFlow().
+  function switchVariant() {
+    lastDesktopState = null;
+    lastMobileState = null;
+    render();
   }
 
-  function simulateResumeFail() {
-    logSystem('Pairing session not found', 'User must scan again');
-    setState(undefined, 'resume-failed');
+  function toggleSidebar() {
+    const app = document.querySelector('.app');
+    const collapsed = app.classList.toggle('sidebar-collapsed');
+    try { localStorage.setItem('pairflow:sidebarCollapsed', collapsed ? '1' : '0'); } catch (_) {}
   }
 
   // --- Init ---
-  logSystem('Pairing session created', 'Waiting for phone to connect');
-  render();
+  try {
+    if (localStorage.getItem('pairflow:sidebarCollapsed') === '1') {
+      document.querySelector('.app').classList.add('sidebar-collapsed');
+    }
+  } catch (_) {}
+  // Force default sidebar state on load: FxA variant, Direct link entrypoint, Mobile has Firefox ON.
+  // (Browsers sometimes restore prior dropdown/toggle values on reload — this resets them.)
+  document.getElementById('variant-select').value = 'current-fxa';
+  document.getElementById('entrypoint-select').value = 'direct-link';
+  document.getElementById('app-installed-toggle').classList.add('on');
+  setState('qr-shown', 'idle', 'Pairing channel created', 'Waiting for phone to scan');
 </script>
 
 </body>

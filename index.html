@@ -66,7 +66,8 @@
 
   .sidebar-header {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 12px;
   }
 
@@ -195,6 +196,92 @@
     background: #e8f0fe;
     color: #1a73e8;
     font-weight: 500;
+  }
+
+  .sidebar-link {
+    display: inline-block;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    color: #1a73e8;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  .sidebar-link:hover {
+    color: #0b47a1;
+  }
+
+  /* --- About modal --- */
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 14, 26, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 40px;
+  }
+
+  .modal-overlay[hidden] { display: none; }
+
+  .modal-panel {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    padding: 32px;
+    max-width: 520px;
+    width: 100%;
+    position: relative;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: #202124;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    line-height: 1;
+    color: #5f6368;
+    cursor: pointer;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-close:hover { background: #f1f3f4; }
+
+  .modal-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #202124;
+    margin: 0 0 16px;
+  }
+
+  .modal-body {
+    font-size: 14px;
+    color: #202124;
+    line-height: 1.5;
+    margin-bottom: 24px;
+  }
+
+  .modal-body p { margin: 0 0 12px; }
+  .modal-body p:last-child { margin: 0; }
+
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
   }
 
   .ops-log li.future {
@@ -929,6 +1016,7 @@
   <!-- Left sidebar: settings & operations log -->
   <div class="sidebar">
     <div class="sidebar-header">
+      <button class="sidebar-link" onclick="openAbout()">About this project</button>
       <button class="sidebar-collapse-btn" onclick="toggleSidebar()" aria-label="Collapse settings" title="Collapse settings">
         <span aria-hidden="true">&laquo;</span>
       </button>
@@ -1029,6 +1117,22 @@
         </div>
       </div>
       <div class="phone-app-bar" id="mobile-app-context">Camera</div>
+    </div>
+  </div>
+</div>
+
+<!-- About this project modal -->
+<div class="modal-overlay" id="about-modal" role="dialog" aria-modal="true" aria-labelledby="about-title" onclick="aboutOverlayClick(event)" hidden>
+  <div class="modal-panel">
+    <button class="modal-close" onclick="closeAbout()" aria-label="Close">&times;</button>
+    <h2 id="about-title" class="modal-title">About this project</h2>
+    <div class="modal-body">
+      <p>This interactive prototype demonstrates the Firefox device pairing flow between desktop and mobile.</p>
+      <p>Use the <strong>Design variant</strong> dropdown to switch between the current FxA design system and the proposed Nova system. This work is still in progress, and the UI and illustrations will continue to be refined.</p>
+      <p>View the <a href="https://www.figma.com/design/zcRkm88GPb9rmd57C1M8Nn/Desktop-to-mobile-pairing-flow?node-id=8998-28403&amp;t=NVl6jP2Vu1uaKg45-11" target="_blank" rel="noopener">end-to-end user flow</a> in Figma.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="sidebar-btn" onclick="closeAbout()">Got it</button>
     </div>
   </div>
 </div>
@@ -1840,12 +1944,44 @@
     try { localStorage.setItem('pairflow:sidebarCollapsed', collapsed ? '1' : '0'); } catch (_) {}
   }
 
-  // --- Init ---
-  try {
-    if (localStorage.getItem('pairflow:sidebarCollapsed') === '1') {
-      document.querySelector('.app').classList.add('sidebar-collapsed');
+  function openAbout() {
+    document.getElementById('about-modal').hidden = false;
+    try { localStorage.setItem('pairflow:aboutSeen', '1'); } catch (_) {}
+  }
+
+  function closeAbout() {
+    document.getElementById('about-modal').hidden = true;
+  }
+
+  // Dismiss the modal when clicking the dark overlay but not the panel itself.
+  function aboutOverlayClick(event) {
+    if (event.target === event.currentTarget) closeAbout();
+  }
+
+  // Dismiss the modal on Escape.
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape' && !document.getElementById('about-modal').hidden) {
+      closeAbout();
     }
-  } catch (_) {}
+  });
+
+  // --- Init ---
+  // Sidebar: collapsed by default on first load; honor user's prior choice on subsequent loads.
+  try {
+    const stored = localStorage.getItem('pairflow:sidebarCollapsed');
+    const collapsed = stored === null ? true : stored === '1';
+    if (collapsed) document.querySelector('.app').classList.add('sidebar-collapsed');
+  } catch (_) {
+    document.querySelector('.app').classList.add('sidebar-collapsed');
+  }
+  // Show About modal on the very first load; dismiss persists forever (until localStorage clears).
+  try {
+    if (localStorage.getItem('pairflow:aboutSeen') !== '1') {
+      document.getElementById('about-modal').hidden = false;
+    }
+  } catch (_) {
+    document.getElementById('about-modal').hidden = false;
+  }
   // Force default sidebar state on load: FxA variant, Direct link entrypoint, Mobile has Firefox ON.
   // (Browsers sometimes restore prior dropdown/toggle values on reload — this resets them.)
   document.getElementById('variant-select').value = 'current-fxa';

@@ -1027,6 +1027,7 @@
       <select id="variant-select" onchange="switchVariant()">
         <option value="current-fxa">FxA Design System</option>
         <option value="nova">Nova Design System</option>
+        <option value="fxa-alt">FxA + Alt kit illustrations</option>
       </select>
     </div>
 
@@ -1036,6 +1037,7 @@
         <option value="direct-link">Direct link</option>
         <option value="auth-promo">Promo in auth flow</option>
         <option value="mobile-first">Mobile first</option>
+        <option value="not-firefox">Not on Firefox</option>
       </select>
     </div>
 
@@ -1190,7 +1192,10 @@
   }
 
   function getDefaultDesktopState() {
-    return document.getElementById('entrypoint-select').value === 'mobile-first' ? 'empty' : 'qr-shown';
+    const ep = document.getElementById('entrypoint-select').value;
+    if (ep === 'mobile-first') return 'empty';
+    if (ep === 'not-firefox') return 'not-firefox';
+    return 'qr-shown';
   }
 
   function getDefaultMobileState() {
@@ -1252,7 +1257,7 @@
             </div>
             <div style="position:relative;width:540px;max-width:112%;overflow:hidden;">
               <img src=":assets/Kit QR.svg?v=3" alt="QR Code" style="width:100%;display:block;">
-              <a href="https://support.mozilla.org/en-US/kb/how-do-i-set-sync-my-computer#w_connect-additional-devices-to-sync" target="_blank" style="position:absolute;bottom:calc(18% - 32px);left:50%;transform:translateX(-50%);font-family:'Inter',system-ui,sans-serif;font-size:12px;font-weight:400;color:#0060DF;line-height:1.5;text-decoration:underline;">Trouble scanning?</a>
+              <a href="https://support.mozilla.org/en-US/kb/how-do-i-set-sync-my-computer#w_connect-additional-devices-to-sync" target="_blank" style="position:absolute;bottom:calc(18% - 32px);left:50%;transform:translateX(-50%);font-family:'Inter',system-ui,sans-serif;font-size:12px;font-weight:400;color:#15141A;line-height:1.5;text-decoration:underline;">Trouble scanning?</a>
             </div>
           </div>
           ${isPromo ? '<button class="btn btn-outlined" style="padding:8px 20px;margin:0;">Skip for now</button>' : ''}
@@ -1278,7 +1283,7 @@
     'approval': () => `
       <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#FAFAFB;padding:40px 64px;">
         <div style="background:#fff;border-radius:12px;box-shadow:0px 2px 14px rgba(58,57,68,0.2);width:480px;max-width:100%;padding:40px 40px 40px;display:flex;flex-direction:column;gap:16px;align-items:stretch;">
-          <div style="display:flex;justify-content:center;padding:0 0 16px;overflow:hidden;height:176px;">
+          <div style="display:flex;justify-content:center;padding:16px 0;overflow:hidden;height:192px;">
             <img src=":assets/_moz-accounts-illustrations_default.svg" alt="Sync illustration" style="height:190px;width:auto;margin-top:-40px;margin-left:-8px;">
           </div>
           <div style="text-align:center;display:flex;flex-direction:column;gap:4px;">
@@ -1297,7 +1302,7 @@
     'success': () => `
       <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#FAFAFB;padding:40px 64px;">
         <div style="background:#fff;border-radius:12px;box-shadow:0px 2px 14px rgba(58,57,68,0.2);width:480px;max-width:100%;padding:40px 40px 40px;display:flex;flex-direction:column;gap:32px;align-items:stretch;">
-          <div style="display:flex;justify-content:center;">
+          <div style="display:flex;justify-content:center;padding:16px 0;">
             <img src=":assets/_moz-accounts-illustrations_connected.svg" alt="Connected illustration" style="height:200px;width:auto;">
           </div>
           <div style="text-align:center;display:flex;flex-direction:column;gap:4px;">
@@ -1330,6 +1335,24 @@
     'empty': () => `
       <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;">
         <button class="btn btn-filled" onclick="navigateToPair()" style="padding:16px 32px;margin:0;">Navigate to firefox.com/pair</button>
+      </div>`,
+
+    'not-firefox': () => `
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#FAFAFB;padding:40px 64px;">
+        <div style="background:#fff;border:2px solid #f0f0f4;border-radius:12px;box-shadow:0 0 16px 0 rgba(0,0,0,0.08);width:480px;max-width:100%;padding:40px;display:flex;flex-direction:column;gap:24px;align-items:center;">
+          <div style="display:flex;justify-content:center;padding:8px 0 0;">
+            <img src=":assets/Download Fx.svg" alt="Switch to Firefox" style="width:240px;height:auto;display:block;">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px;width:100%;">
+            <p style="font-family:'SF Pro',-apple-system,'Inter',system-ui,sans-serif;font-size:22px;font-weight:700;color:#000;line-height:1.5;margin:0;">Oops! It looks like you&rsquo;re not using Firefox</p>
+            <p style="font-family:'SF Pro',-apple-system,'Inter',system-ui,sans-serif;font-size:16px;font-weight:400;color:#000;line-height:1.5;margin:0;">View your saved passwords, tabs, browsing history and more across all your devices using Firefox.</p>
+          </div>
+          <div style="background:#aaf2ff;border-radius:6px;padding:12px 16px;display:flex;align-items:center;gap:14px;width:100%;">
+            <span class="material-icons-outlined" style="font-size:20px;color:#15141A;flex-shrink:0;">info</span>
+            <p style="font-family:'SF Pro',-apple-system,'Inter',system-ui,sans-serif;font-size:14px;font-weight:400;color:#15141A;line-height:1.5;margin:0;">Switch to Firefox and open this page to connect another device</p>
+          </div>
+          <button class="btn btn-filled" style="width:100%;padding:16px;margin:0;">Download Firefox</button>
+        </div>
       </div>`,
   };
 
@@ -1550,7 +1573,7 @@
             </div>
             <div style="position:relative;width:540px;max-width:112%;overflow:hidden;margin-top:8px;">
               <img src=":assets/Kit QR.svg?v=3" alt="QR Code" style="width:100%;display:block;">
-              <a class="nova-link" href="https://support.mozilla.org/en-US/kb/how-do-i-set-sync-my-computer#w_connect-additional-devices-to-sync" target="_blank" style="position:absolute;bottom:calc(18% - 28px);left:50%;transform:translateX(-50%);">Trouble scanning?</a>
+              <a class="nova-link" href="https://support.mozilla.org/en-US/kb/how-do-i-set-sync-my-computer#w_connect-additional-devices-to-sync" target="_blank" style="position:absolute;bottom:calc(18% - 28px);left:50%;transform:translateX(-50%);color:#180e30;">Trouble scanning?</a>
             </div>
           </div>
           ${isPromo ? '<button class="nova-btn nova-btn--default" style="display:inline-flex;align-items:center;gap:8px;">Skip for now <span aria-hidden="true" style="font-size:16px;line-height:1;">&rsaquo;</span></button>' : ''}
@@ -1573,7 +1596,7 @@
       <div class="nova-surface" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 64px;">
         <div class="nova-card" style="width:456px;max-width:100%;padding:40px;display:flex;flex-direction:column;gap:20px;align-items:stretch;">
           <div style="display:flex;justify-content:center;">
-            <img src=":assets/nova/Sync_v2.svg?v=2" alt="Sync illustration" style="width:160px;height:160px;display:block;">
+            <img src=":assets/nova/Sync-device.svg" alt="Sync illustration" style="width:160px;height:160px;display:block;">
           </div>
           <div style="text-align:center;display:flex;flex-direction:column;gap:8px;">
             <p class="nova-heading--xl">Approve sign-in to sync devices</p>
@@ -1622,6 +1645,24 @@
     'empty': () => `
       <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;">
         <button class="nova-btn nova-btn--primary" onclick="navigateToPair()" style="padding:12px 32px;">Navigate to firefox.com/pair</button>
+      </div>`,
+
+    'not-firefox': () => `
+      <div class="nova-surface" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 64px;">
+        <div class="nova-card" style="width:456px;max-width:100%;padding:40px;display:flex;flex-direction:column;gap:24px;align-items:center;">
+          <div style="display:flex;justify-content:center;padding:8px 0 0;">
+            <img src=":assets/Download Fx.svg" alt="Switch to Firefox" style="width:240px;height:auto;display:block;">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px;width:100%;">
+            <p class="nova-heading--xl">Oops! It looks like you&rsquo;re not using Firefox</p>
+            <p class="nova-body">View your saved passwords, tabs, browsing history and more across all your devices using Firefox.</p>
+          </div>
+          <div style="background:#eaddff;border-radius:6px;padding:12px 16px;display:flex;align-items:center;gap:14px;width:100%;">
+            <span class="material-icons-outlined" style="font-size:20px;color:#764edd;flex-shrink:0;">info</span>
+            <p class="nova-body" style="font-size:13px;">Switch to Firefox and open this page to connect another device</p>
+          </div>
+          <button class="nova-btn nova-btn--primary" style="width:100%;">Download Firefox</button>
+        </div>
       </div>`,
   };
 
@@ -1676,7 +1717,7 @@
       <div class="nova-surface" style="flex:1;display:flex;flex-direction:column;border-radius:0 0 12px 12px;padding:16px 10px;gap:8px;">
 <div style="flex:1;display:flex;flex-direction:column;align-items:center;min-height:0;gap:8px;">
           <div style="display:flex;justify-content:center;padding:8px 0;">
-            <img src=":assets/nova/Computer-check.svg?v=2" alt="Computer" style="width:120px;height:120px;display:block;">
+            <img src=":assets/nova/Sync-device.svg" alt="Sync device" style="width:120px;height:120px;display:block;">
           </div>
           <div style="width:100%;display:flex;flex-direction:column;gap:12px;">
             <p class="nova-heading" style="text-align:center;">Approve on your other device</p>
@@ -1718,7 +1759,64 @@
 
   function pickRenderer(fxaMap, novaMap, state, variant) {
     if (variant === 'nova' && novaMap[state]) return novaMap[state];
+    // 'fxa-alt' uses the FxA renderers — illustrations get swapped post-render
+    // by applyIllustrationOverrides() below.
     return fxaMap[state];
+  }
+
+  // Illustration-swap map for the 'fxa-alt' variant — keys are the default src
+  // path (sans cache-buster), values are the alternate path. applyIllustrationOverrides
+  // preserves any `?v=…` query string when rewriting.
+  const fxaAltIllustrations = {
+    // Replaces the sync illustration on FxA approval (desktop), confirm (mobile),
+    // and waiting-approval (mobile) with the alt Kit illo.
+    ':assets/_moz-accounts-illustrations_default.svg': ':assets/Kit illo/illo-sync.svg',
+    // Replaces the connected illustration on FxA success (desktop + mobile).
+    ':assets/_moz-accounts-illustrations_connected.svg': ':assets/Kit illo/illo-sync.svg',
+    // Replaces the phone illustration on FxA scan-detected "Continue on mobile" (desktop).
+    ':assets/_moz-accounts-mobile.svg': ':assets/Kit illo/kit-phone.svg',
+    // Replaces the Kit QR illustration on FxA qr-shown "Connect your phone or tablet" (desktop).
+    ':assets/Kit QR.svg': ':assets/Kit illo/Kit QR.svg',
+  };
+
+  // Srcs whose replacement should NOT get the fixed-height resize treatment
+  // (because they use width:100% on a positioned container with overlay text).
+  const fxaAltSkipResize = new Set([':assets/Kit QR.svg']);
+
+  function applyIllustrationOverrides(variant) {
+    if (variant !== 'fxa-alt') return;
+    const imgs = document.querySelectorAll('#desktop-content img, #mobile-content img');
+    imgs.forEach(img => {
+      const src = img.getAttribute('src') || '';
+      // Match against the src with or without a cache-buster query string.
+      const base = src.split('?')[0];
+      if (fxaAltIllustrations[base]) {
+        const qs = src.includes('?') ? src.slice(src.indexOf('?')) : '';
+        img.setAttribute('src', fxaAltIllustrations[base] + qs);
+        // Skip the fixed-height resize for illustrations that rely on width:100%
+        // and overlay positioning (e.g. Kit QR on qr-shown).
+        if (fxaAltSkipResize.has(base)) return;
+        // Resize the alt illustration per platform: 128 px tall on desktop,
+        // 88 px tall on mobile (scaled ~0.68× to match the FxA mobile heading
+        // ratio of 15/22), proportional width, no cropping margins.
+        const onMobile = img.closest('#mobile-content') !== null;
+        img.style.height = onMobile ? '88px' : '128px';
+        img.style.width = 'auto';
+        img.style.marginTop = '0';
+        img.style.marginLeft = '0';
+        img.style.marginRight = '0';
+        img.style.marginBottom = '0';
+        // Some FxA wrappers (e.g. desktop approval at 176px) hard-code a height
+        // sized for the original moz-accounts illo + negative-margin crop. Let
+        // the container hug the new 128 px image on desktop.
+        if (!onMobile) {
+          const wrapper = img.parentElement;
+          if (wrapper && wrapper.tagName === 'DIV') {
+            wrapper.style.height = 'auto';
+          }
+        }
+      }
+    });
   }
 
   // --- Render ---
@@ -1743,6 +1841,7 @@
         'approval': 'https://accounts.firefox.com/pair/auth/allow',
         'success': 'https://accounts.firefox.com/pair/auth/complete',
         'timeout': 'https://accounts.firefox.com/pair/expired',
+        'not-firefox': 'https://accounts.firefox.com/pair',
         'empty': '',
       };
       document.getElementById('browser-url').textContent = desktopState in urlMap ? urlMap[desktopState] : 'https://accounts.firefox.com/pair';
@@ -1753,10 +1852,12 @@
         'approval': 'Approve device sign in',
         'success': 'Device connected',
         'timeout': 'Connect your phone or tablet',
+        'not-firefox': 'Connect your phone or tablet',
       };
       document.getElementById('browser-tab-text').textContent = tabMap[desktopState] || 'Connect your phone or tablet';
       document.querySelector('.moz-header').style.display = desktopState === 'empty' ? 'none' : '';
       document.querySelector('.browser-nav').style.display = desktopState === 'empty' ? 'none' : '';
+      applyIllustrationOverrides(variant);
     }
 
     if (mobileState !== lastMobileState) {
@@ -1764,6 +1865,7 @@
       const sc = mobileEl.querySelector('.state-content');
       if (sc) sc.classList.add('animate-in');
       lastMobileState = mobileState;
+      applyIllustrationOverrides(variant);
     }
 
     const mobileAppContext = {

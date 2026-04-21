@@ -1318,7 +1318,7 @@
     'timeout': () => `
       <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#FAFAFB;padding:40px 64px;">
         <div style="background:#fff;border-radius:12px;box-shadow:0px 2px 14px rgba(58,57,68,0.2);width:480px;max-width:100%;padding:40px 40px 40px;display:flex;flex-direction:column;gap:32px;align-items:center;">
-          <div style="display:flex;justify-content:center;padding:0 0 16px;">
+          <div style="display:flex;justify-content:center;padding:16px 0;">
             <img src=":assets/QR_code.svg" alt="QR code expired" style="height:200px;width:auto;">
           </div>
           <div style="text-align:center;display:flex;flex-direction:column;gap:4px;width:100%;">
@@ -1777,6 +1777,9 @@
     ':assets/_moz-accounts-mobile.svg': ':assets/Kit illo/kit-phone.svg',
     // Replaces the Kit QR illustration on FxA qr-shown "Connect your phone or tablet" (desktop).
     ':assets/Kit QR.svg': ':assets/Kit illo/Kit QR.svg',
+    // Replaces the timeout illustration on FxA timeout (desktop + mobile).
+    ':assets/QR_code.svg': ':assets/Kit illo/QR_timeout.svg',
+    ':assets/nova/timeout.svg': ':assets/Kit illo/QR_timeout.svg',
   };
 
   // Srcs whose replacement should NOT get the fixed-height resize treatment
